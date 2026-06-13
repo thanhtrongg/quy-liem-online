@@ -331,7 +331,6 @@ $("leave-room").onclick = () => {
 };
 $("role-book-toggle").onclick = () => toggleRoleBook();
 $("role-book-close").onclick = () => toggleRoleBook(false);
-$("book-backdrop").onclick = () => toggleRoleBook(false);
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && roleBookOpen) toggleRoleBook(false);
 });
