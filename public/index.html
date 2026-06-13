@@ -15,10 +15,16 @@
   </head>
   <body>
     <audio id="background-music" loop preload="auto">
-      <source src="/sounds/Chloe%27s%20Lullaby%20-%20Creepy%20Music%20Box.mp3" type="audio/mpeg" />
+      <source
+        src="/sounds/Chloe%27s%20Lullaby%20-%20Creepy%20Music%20Box.mp3"
+        type="audio/mpeg"
+      />
     </audio>
     <audio id="death-scream" preload="auto">
-      <source src="/sounds/Scary%20Demon%20Scream%20Sound%21.mp3" type="audio/mpeg" />
+      <source
+        src="/sounds/Scary%20Demon%20Scream%20Sound%21.mp3"
+        type="audio/mpeg"
+      />
     </audio>
     <div class="mist mist-one"></div>
     <div class="mist mist-two"></div>
@@ -67,20 +73,42 @@
             <span id="phase-label"></span><strong id="day-label"></strong>
           </div>
           <div id="phase-clock" class="phase-clock hidden">00:00</div>
-          <button id="role-book-toggle" class="book-toggle" aria-expanded="false" aria-controls="role-book">Sổ vai</button>
-          <button id="music-toggle" class="sound-toggle" title="Bật/tắt nhạc nền" aria-label="Bật/tắt nhạc nền">Nhạc nền: Bật</button>
-          <button id="sound-toggle" class="sound-toggle" title="Bật/tắt âm thanh" aria-label="Bật/tắt âm thanh">Âm thanh: Bật</button>
+          <button
+            id="role-book-toggle"
+            class="book-toggle"
+            aria-expanded="false"
+            aria-controls="role-book"
+          >
+            Cẩm nag roles
+          </button>
+          <button
+            id="music-toggle"
+            class="sound-toggle"
+            title="Bật/tắt nhạc nền"
+            aria-label="Bật/tắt nhạc nền"
+          >
+            Nhạc nền: Bật
+          </button>
+          <button
+            id="sound-toggle"
+            class="sound-toggle"
+            title="Bật/tắt âm thanh"
+            aria-label="Bật/tắt âm thanh"
+          >
+            Âm thanh: Bật
+          </button>
           <button id="leave-room" class="leave-room hidden">Rời phòng</button>
         </header>
         <aside id="role-book" class="role-book" aria-hidden="true">
           <div class="book-heading">
             <div>
-              <div class="eyebrow">Cẩm nang khu phố</div>
-              <h2>Sổ vai</h2>
+              <h2>Roles</h2>
             </div>
             <button id="role-book-close" aria-label="Đóng sổ vai">Đóng</button>
           </div>
-          <p class="book-note">Tra cứu chức năng các vai. Sổ không tiết lộ vai của người chơi.</p>
+          <p class="book-note">
+            Tra cứu chức năng các vai. Sổ không tiết lộ vai của người chơi.
+          </p>
           <div id="role-book-list" class="role-book-list"></div>
         </aside>
         <div id="book-backdrop" class="book-backdrop"></div>
@@ -90,7 +118,9 @@
           <h2 id="end-title"></h2>
           <p id="end-help"></p>
           <div class="end-actions">
-            <button id="replay-room" class="primary hidden">Chơi lại cùng phòng</button>
+            <button id="replay-room" class="primary hidden">
+              Chơi lại cùng phòng
+            </button>
             <button id="new-room">Tạo phòng mới</button>
           </div>
           <p id="end-error" class="error"></p>
@@ -134,7 +164,9 @@
             <div class="host-danger">
               <div>
                 <strong>Quản lý phòng</strong>
-                <small>Kick thành viên khỏi sảnh hoặc hủy phòng hiện tại.</small>
+                <small
+                  >Kick thành viên khỏi sảnh hoặc hủy phòng hiện tại.</small
+                >
               </div>
               <div id="kick-list" class="kick-list"></div>
               <button id="cancel-room" class="danger">Hủy phòng</button>
