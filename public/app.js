@@ -8,6 +8,7 @@ let soundEnabled = localStorage.getItem("quy-liem-muted") !== "true";
 let musicEnabled = localStorage.getItem("quy-liem-music-muted") !== "true";
 let effectTimer = null;
 let clockTimer = null;
+let roleBookOpen = false;
 $("background-music").volume = 0.3;
 $("death-scream").volume = 0.78;
 
@@ -82,6 +83,20 @@ $("leave-room").onclick = () => {
     if (res?.error) window.alert(res.error);
   });
 };
+$("role-book-toggle").onclick = () => toggleRoleBook();
+$("role-book-close").onclick = () => toggleRoleBook(false);
+$("book-backdrop").onclick = () => toggleRoleBook(false);
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && roleBookOpen) toggleRoleBook(false);
+});
+
+function toggleRoleBook(force) {
+  roleBookOpen = typeof force === "boolean" ? force : !roleBookOpen;
+  $("role-book").classList.toggle("open", roleBookOpen);
+  $("book-backdrop").classList.toggle("open", roleBookOpen);
+  $("role-book").setAttribute("aria-hidden", String(!roleBookOpen));
+  $("role-book-toggle").setAttribute("aria-expanded", String(roleBookOpen));
+}
 
 socket.on("state", (next) => {
   const previous = state;
@@ -122,6 +137,7 @@ function render() {
   renderLogs();
   renderHost();
   renderEndPanel();
+  renderRoleBook();
   const banner = $("banner");
   if (state.status === "ended") {
     banner.classList.add("hidden");
@@ -133,6 +149,20 @@ function render() {
     banner.classList.remove("hidden");
   } else banner.classList.add("hidden");
   renderClock();
+}
+
+function renderRoleBook() {
+  const labels = { demon: "Phe Quỷ Liếm", village: "Phe khu phố" };
+  $("role-book-list").innerHTML = ["demon", "village"].map((team) => {
+    const roles = Object.entries(state.roleInfo).filter(([, info]) => info.team === team);
+    return `<section class="book-team ${team}">
+      <h3>${labels[team]}</h3>
+      ${roles.map(([key, info]) => `<article class="book-role">
+        <span class="book-mark">${["demon", "junior"].includes(key) ? "Q" : "V"}</span>
+        <div><strong>${escapeHtml(info.name)}</strong><p>${escapeHtml(info.description)}</p></div>
+      </article>`).join("")}
+    </section>`;
+  }).join("");
 }
 
 function renderEndPanel() {

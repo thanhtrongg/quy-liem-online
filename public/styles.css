@@ -488,7 +488,7 @@ header {
   top: 12px;
   z-index: 20;
   display: grid;
-  grid-template-columns: 1fr auto auto auto auto;
+  grid-template-columns: 1fr auto auto auto auto auto;
   gap: 18px;
   align-items: center;
   padding: 14px 18px;
@@ -546,6 +546,148 @@ header {
 .leave-room:hover {
   border-color: #d15363;
   color: #fff;
+}
+.book-toggle {
+  position: relative;
+  padding-left: 32px;
+  border-color: #80602f;
+  background: linear-gradient(135deg, #342513, #160d08);
+  color: #ead7a9;
+  font-size: 0.72rem;
+}
+.book-toggle::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 12px;
+  height: 16px;
+  border: 1px solid #d0ae69;
+  border-left-width: 3px;
+  transform: translateY(-50%) rotate(-5deg);
+  box-shadow: 3px 2px #6d4b20;
+}
+.book-toggle[aria-expanded="true"] {
+  border-color: #d5a84f;
+  box-shadow: 0 0 18px #d5a84f40;
+}
+.book-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 59;
+  visibility: hidden;
+  background: #02010199;
+  opacity: 0;
+  transition: opacity 0.25s, visibility 0.25s;
+}
+.book-backdrop.open {
+  visibility: visible;
+  opacity: 1;
+}
+.role-book {
+  position: fixed;
+  z-index: 60;
+  top: 0;
+  right: 0;
+  width: min(470px, 94vw);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 25px 25px 45px 35px;
+  border-left: 8px solid #4f1119;
+  background:
+    repeating-linear-gradient(0deg, #0000 0 34px, #5a402216 35px),
+    radial-gradient(circle at 20% 10%, #6f4b2738, transparent 33%),
+    #170f0b;
+  box-shadow: -28px 0 75px #000;
+  transform: translateX(105%);
+  transition: transform 0.32s ease;
+}
+.role-book.open {
+  transform: translateX(0);
+}
+.role-book::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  margin-left: -20px;
+  background: #b28a4e40;
+  box-shadow: 4px 0 #0006;
+}
+.book-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 15px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid #72512e;
+}
+.book-heading h2 {
+  margin: 8px 0 0;
+  color: #efe0bd;
+  font-family: "YouMurderer", cursive;
+  font-size: 3.6rem;
+  line-height: 0.75;
+}
+.book-heading button {
+  padding: 7px 10px;
+  border-color: #72512e;
+  background: #25160d;
+  color: #d4bd91;
+  font-size: 0.7rem;
+}
+.book-note {
+  color: #ab9470;
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+.book-team {
+  margin-top: 25px;
+}
+.book-team h3 {
+  margin: 0 0 10px;
+  color: #e6d3ab;
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.book-team.demon h3 {
+  color: #f05263;
+}
+.book-role {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px dashed #65482766;
+}
+.book-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #846239;
+  border-radius: 50% 45% 55% 48%;
+  color: #d7bd86;
+  font-family: "YouMurderer", cursive;
+  font-size: 1.8rem;
+  transform: rotate(-7deg);
+}
+.book-team.demon .book-mark {
+  border-color: #8f2833;
+  color: #ff5266;
+  background: #350a10;
+}
+.book-role strong {
+  color: #e9d9b9;
+  font-size: 0.86rem;
+}
+.book-role p {
+  margin: 5px 0 0;
+  color: #ab9878;
+  font-size: 0.74rem;
+  line-height: 1.55;
 }
 .phase-clock {
   min-width: 76px;
@@ -1029,8 +1171,13 @@ body[data-phase="night"] .game-header::after {
     grid-row: 2;
     padding: 7px;
   }
+  .book-toggle {
+    grid-column: 1;
+    grid-row: 3;
+    padding: 7px 7px 7px 31px;
+  }
   #sound-toggle {
-    grid-column: 1 / -1;
+    grid-column: 2;
     grid-row: 3;
     padding: 7px;
   }
@@ -1038,6 +1185,10 @@ body[data-phase="night"] .game-header::after {
     grid-column: 1 / -1;
     grid-row: 4;
     padding: 7px;
+  }
+  .role-book {
+    width: 100vw;
+    padding: 22px 18px 40px 28px;
   }
   .game-grid {
     grid-template-areas: "identity" "action" "players" "journal" "host";

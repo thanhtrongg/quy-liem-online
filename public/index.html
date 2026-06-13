@@ -67,10 +67,23 @@
             <span id="phase-label"></span><strong id="day-label"></strong>
           </div>
           <div id="phase-clock" class="phase-clock hidden">00:00</div>
+          <button id="role-book-toggle" class="book-toggle" aria-expanded="false" aria-controls="role-book">Sổ vai</button>
           <button id="music-toggle" class="sound-toggle" title="Bật/tắt nhạc nền" aria-label="Bật/tắt nhạc nền">Nhạc nền: Bật</button>
           <button id="sound-toggle" class="sound-toggle" title="Bật/tắt âm thanh" aria-label="Bật/tắt âm thanh">Âm thanh: Bật</button>
           <button id="leave-room" class="leave-room hidden">Rời phòng</button>
         </header>
+        <aside id="role-book" class="role-book" aria-hidden="true">
+          <div class="book-heading">
+            <div>
+              <div class="eyebrow">Cẩm nang khu phố</div>
+              <h2>Sổ vai</h2>
+            </div>
+            <button id="role-book-close" aria-label="Đóng sổ vai">Đóng</button>
+          </div>
+          <p class="book-note">Tra cứu chức năng các vai. Sổ không tiết lộ vai của người chơi.</p>
+          <div id="role-book-list" class="role-book-list"></div>
+        </aside>
+        <div id="book-backdrop" class="book-backdrop"></div>
         <div id="banner" class="banner hidden"></div>
         <section id="end-panel" class="end-panel hidden">
           <div class="eyebrow">Ván đấu kết thúc</div>
