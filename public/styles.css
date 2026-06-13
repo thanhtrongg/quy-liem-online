@@ -21,6 +21,26 @@
 }
 html {
   overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #4f1119 #0d0709;
+  cursor: url("/cursor/Selection_normal.cur") 4 4, auto;
+}
+html::-webkit-scrollbar {
+  width: 8px;
+}
+html::-webkit-scrollbar-track {
+  background: #0d0709;
+  border-left: 1px solid #1f0a0d;
+}
+html::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6b1823, #3d0d14);
+  border-left: 1px solid #8f2833;
+  box-shadow: inset 0 0 6px #8f283355;
+}
+html::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8f2833, #6b1823);
+  box-shadow: inset 0 0 10px #ef315744;
 }
 body {
   margin: 0;
@@ -29,6 +49,13 @@ body {
   color: var(--text);
   font-family: "Be Vietnam Pro", sans-serif;
   min-height: 100vh;
+}
+input[type="text"], input[type="number"], textarea {
+  cursor: url("/cursor/Selection_text.cur") 4 4, text;
+}
+button, a, input[type="checkbox"], input[type="radio"], input[type="submit"], input[type="button"], select, .target, .book-toggle, .kick-member, .leave-room, #copy-code,
+.role-control, label, [onclick], .tab, .player, .phase-clock, .close, .danger, .host-danger, .kick-list, .role-config {
+  cursor: url("/cursor/Choose.cur") 4 4, pointer;
 }
 body::before {
   content: "";
@@ -181,7 +208,6 @@ button {
   background: #251316;
   padding: 12px 16px;
   border-radius: 2px;
-  cursor: pointer;
   font-weight: 700;
   transition: 0.18s;
 }
@@ -436,9 +462,6 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
 }
 .player.me {
   border-color: var(--gold);
-}
-.target {
-  cursor: pointer;
 }
 .target.selected {
   border-color: var(--red);
@@ -861,6 +884,8 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   width: min(470px, 94vw);
   height: 100vh;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #4f1119 #0d0709;
   padding: 25px 25px 45px 35px;
   border-left: 8px solid #4f1119;
   background:
@@ -873,6 +898,23 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   pointer-events: none;
   transform: translateX(105%);
   transition: visibility 0s 0.32s, opacity 0.32s ease, transform 0.32s ease;
+}
+.role-book::-webkit-scrollbar {
+  width: 7px;
+}
+.role-book::-webkit-scrollbar-track {
+  background: #0d0709;
+  border-left: 1px solid #2a0f13;
+}
+.role-book::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #6b1823, #4f1119);
+  border-radius: 0;
+  border-left: 1px solid #8f2833;
+  box-shadow: inset 0 0 6px #8f283355;
+}
+.role-book::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8f2833, #6b1823);
+  box-shadow: inset 0 0 10px #ef315744;
 }
 .role-book.open {
   visibility: visible;
