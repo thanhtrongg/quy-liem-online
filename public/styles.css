@@ -661,13 +661,16 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
   border: 1px solid #3a2a3a;
   border-radius: 50% 44% 56% 48%;
   background: #0e0b13;
   flex-shrink: 0;
   font-family: "YouMurderer", cursive;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   line-height: 1;
+  text-align: center;
+  text-indent: 0;
 }
 .role-label-name {
   color: #e9d9b9;

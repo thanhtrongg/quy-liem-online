@@ -1170,7 +1170,7 @@ function renderHost() {
   if (!state.isHost || state.status !== "lobby")
     return panel.classList.add("hidden");
   panel.classList.remove("hidden");
-  const teamLabels = { demon: "Quỷ", village: "Dân", loner: "Độc" };
+  const teamLabels = { demon: "Quỷ", village: "Dân", loner: "Độc Hành" };
   const teamOrder = ["demon", "village", "loner"];
   const sorted = Object.entries(state.roles).sort(([a], [b]) => {
     const ta = state.roleInfo[a]?.team, tb = state.roleInfo[b]?.team;
