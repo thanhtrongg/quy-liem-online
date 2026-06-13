@@ -152,7 +152,8 @@ function createVoicePeer(peerId) {
     audio.play().catch(() => {});
   };
   pc.onconnectionstatechange = () => {
-    if (["failed", "closed"].includes(pc.connectionState)) closeVoicePeer(peerId);
+    if (["failed", "closed"].includes(pc.connectionState))
+      closeVoicePeer(peerId);
   };
   voicePeers.set(peerId, { pc, audio });
   return pc;
@@ -187,7 +188,8 @@ async function startVoice() {
     renderVoiceToggle();
     for (const peerId of state.voice.peerIds) {
       sendVoiceSignal(peerId, { type: "ready" });
-      if (state.me.id.localeCompare(peerId) < 0) offerVoice(peerId).catch(() => {});
+      if (state.me.id.localeCompare(peerId) < 0)
+        offerVoice(peerId).catch(() => {});
     }
   } catch {
     voiceError = "Trình duyệt chưa cấp quyền mic";
@@ -208,7 +210,8 @@ function syncVoiceAccess() {
   if (!voiceActive) return renderVoiceToggle();
   for (const peerId of allowedPeers) {
     sendVoiceSignal(peerId, { type: "ready" });
-    if (state.me.id.localeCompare(peerId) < 0) offerVoice(peerId).catch(() => {});
+    if (state.me.id.localeCompare(peerId) < 0)
+      offerVoice(peerId).catch(() => {});
   }
   renderVoiceToggle();
 }
@@ -229,7 +232,8 @@ $("mic-toggle").onclick = () => {
 };
 
 socket.on("voice-signal", async ({ fromId, signal }) => {
-  if (!voiceActive || !state?.voice?.peerIds?.includes(fromId) || !signal) return;
+  if (!voiceActive || !state?.voice?.peerIds?.includes(fromId) || !signal)
+    return;
   try {
     if (signal.type === "ready") {
       if (state.me.id.localeCompare(fromId) < 0) await offerVoice(fromId);
@@ -734,13 +738,13 @@ function playDefenseSound() {
 }
 
 function showToast(message, type = "") {
-  clearTimeout(toastTimer);
   const container = $("toast-container");
+  container.innerHTML = "";
   const el = document.createElement("div");
   el.className = "toast" + (type ? " " + type : "");
   el.textContent = message;
   container.appendChild(el);
-  toastTimer = setTimeout(() => {
+  setTimeout(() => {
     el.classList.add("out");
     setTimeout(() => el.remove(), 200);
   }, 2800);
@@ -784,11 +788,7 @@ function renderIdentity() {
     bits.push(`Số mạng còn lại: ${state.me.health}`);
   if (state.villagePowersDisabled && state.roleInfo[role]?.team === "village")
     bits.push("Lời nguyền Chá Giò đã kích hoạt: phe dân không còn kỹ năng.");
-  const mates = state.players.filter(
-    (p) =>
-      p.id !== state.me?.id &&
-      p.isWolf,
-  );
+  const mates = state.players.filter((p) => p.id !== state.me?.id && p.isWolf);
   if (mates.length)
     bits.push(`Các Quỷ cùng thức dậy: ${mates.map((p) => p.name).join(", ")}`);
   if (state.seerResult)
@@ -927,9 +927,9 @@ function renderAction() {
       ? "Đầu tiên chọn con mồi của đàn, sau đó chọn một thành viên phe Quỷ để bí mật thủ tiêu."
       : action.type === "wolf-vote"
         ? "Mỗi Quỷ bỏ một phiếu. Mục tiêu có nhiều phiếu nhất sẽ bị liếm; hòa phiếu thì không ai chết."
-      : action.count === 2
-        ? "Chọn đúng hai người."
-        : "Chạm vào một người để chọn.";
+        : action.count === 2
+          ? "Chọn đúng hai người."
+          : "Chạm vào một người để chọn.";
   if (action.type === "witch") renderWitch(action);
   else renderTargets(action);
   if (action.allowSkip) {
@@ -945,7 +945,8 @@ function eligible(action, player) {
   if (action.exclude?.includes(player.id)) return false;
   const isWolf =
     player.isWolf ||
-    (player.role && ["demon", "loner"].includes(state.roleInfo[player.role]?.team));
+    (player.role &&
+      ["demon", "loner"].includes(state.roleInfo[player.role]?.team));
   if (action.betrayal) {
     if (selected.length === 0) return !isWolf;
     return (
@@ -955,14 +956,19 @@ function eligible(action, player) {
   if (action.betrayalOnly) return isWolf && player.id !== state.me.id;
   if (action.excludeRegularWolf && isWolf) return false;
   if (action.excludeWolf && isWolf) return false;
-  if (action.type === "witch" && witchMode === "poison" && player.id === state.me.id)
+  if (
+    action.type === "witch" &&
+    witchMode === "poison" &&
+    player.id === state.me.id
+  )
     return false;
   if (action.type === "hunter" && player.id === state.me.id) return false;
   return true;
 }
 
 function renderTargets(action) {
-  if (!selected.length && action.currentTarget) selected = [action.currentTarget];
+  if (!selected.length && action.currentTarget)
+    selected = [action.currentTarget];
   const choices = state.players.filter((p) => eligible(action, p));
   $("targets").innerHTML = choices
     .map(
@@ -1122,7 +1128,9 @@ function RoleParticles() {
   let running = false;
   let lastFrame = 0;
   let resizeTimer = null;
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
   const lowPower =
     (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
     (navigator.deviceMemory && navigator.deviceMemory <= 4);
