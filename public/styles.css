@@ -1996,11 +1996,11 @@ body[data-phase="night"] .role-particles {
   transition: opacity 0.6s;
 }
 .card-reveal.shrink .card-container {
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), top 0.7s cubic-bezier(0.4, 0, 0.2, 1), right 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), top 0.7s cubic-bezier(0.4, 0, 0.2, 1), left 0.7s cubic-bezier(0.4, 0, 0.2, 1);
   transform: scale(0.18);
   position: fixed;
   top: 20px;
-  right: 20px;
+  left: 20px;
   width: 240px;
   height: 360px;
 }
@@ -2012,7 +2012,7 @@ body[data-phase="night"] .role-particles {
 .mini-card {
   position: fixed;
   top: 20px;
-  right: 20px;
+  left: 20px;
   z-index: 50;
   width: 48px;
   height: 68px;
@@ -2054,6 +2054,6 @@ body[data-role="priest"] .mini-card { border-color: #8a7a4a; box-shadow: 0 0 20p
 
 @media (max-width: 640px) {
   .card-container { width: 180px; height: 270px; }
-  .card-reveal.shrink .card-container { width: 180px; height: 270px; top: 12px; right: 12px; }
-  .mini-card { width: 40px; height: 56px; top: 12px; right: 12px; }
+  .card-reveal.shrink .card-container { width: 180px; height: 270px; top: 12px; left: 12px; }
+  .mini-card { width: 40px; height: 56px; top: 12px; left: 12px; }
 }
