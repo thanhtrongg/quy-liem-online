@@ -293,6 +293,29 @@ body[data-role="junior"] .identity h2 {
 body[data-role="junior"] #role-desc { color: #ffb56b; }
 body[data-role="junior"] #role-flavor { color: #ffab40; border-left-color: #ff6d0044; }
 
+body[data-role="spirit"] .identity {
+  border-color: #9d68d8;
+  box-shadow: 0 0 30px #8146bd33, inset 0 0 45px #4d1c7a22;
+}
+body[data-role="spirit"] .identity h2 {
+  color: #d4a4ff;
+  text-shadow: 0 0 18px #b163ff, 0 0 38px #6e259f88;
+  animation: demon-glow 2.4s ease-in-out infinite alternate;
+}
+body[data-role="spirit"] #role-desc { color: #d8b7f5; }
+body[data-role="spirit"] #role-flavor { color: #b98add; border-left-color: #8249b966; }
+
+body[data-role="springroll"] .identity {
+  border-color: #ca7a34;
+  box-shadow: 0 0 25px #ca7a3422, inset 0 0 35px #8e421522;
+}
+body[data-role="springroll"] .identity h2 {
+  color: #f0a85f;
+  text-shadow: 0 0 16px #cf6d2e77;
+}
+body[data-role="springroll"] #role-desc { color: #efc08d; }
+body[data-role="springroll"] #role-flavor { color: #d69863; border-left-color: #ca7a3455; }
+
 body[data-role="seer"] .identity {
   border-color: #b388ff;
   box-shadow: 0 0 30px #b388ff33, inset 0 0 40px #b388ff11;
@@ -905,6 +928,9 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
 .book-team.demon h3 {
   color: #f05263;
 }
+.book-team.loner h3 {
+  color: #b891ff;
+}
 .book-role {
   display: grid;
   grid-template-columns: 38px 1fr;
@@ -929,6 +955,11 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   color: #ff5266;
   background: #350a10;
 }
+.book-team.loner .book-mark {
+  border-color: #69429a;
+  color: #d6b4ff;
+  background: #1c0c31;
+}
 .book-role strong {
   color: #e9d9b9;
   font-size: 0.86rem;
@@ -952,6 +983,10 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
 .book-team.demon .book-flavor {
   color: #ff7a8a;
   border-left-color: #8f283355;
+}
+.book-team.loner .book-flavor {
+  color: #caa6f7;
+  border-left-color: #71469a66;
 }
 .phase-clock {
   min-width: 76px;
@@ -1801,6 +1836,9 @@ body[data-phase="night"] .role-particles {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .role-particles {
+    display: none;
+  }
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;

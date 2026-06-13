@@ -75,7 +75,10 @@ io.on("connection", (socket) => {
   socket.on("set-roles", (roles) => {
     const room = rooms.get(socket.data.roomCode);
     if (!room || room.hostId !== socket.data.playerId || room.status !== "lobby") return;
-    for (const key of Object.keys(DEFAULT_ROLES)) room.roles[key] = Math.max(0, Math.min(20, Number(roles[key]) || 0));
+    for (const key of Object.keys(DEFAULT_ROLES)) {
+      const maximum = key === "spirit" ? 1 : 20;
+      room.roles[key] = Math.max(0, Math.min(maximum, Number(roles[key]) || 0));
+    }
     emitRoom(io, room);
   });
 
@@ -158,7 +161,14 @@ io.on("connection", (socket) => {
     if (deck.length !== room.players.length) return callback?.({ error: `Tổng số vai (${deck.length}) phải bằng số người (${room.players.length}).` });
     if (!deck.includes("demon")) return callback?.({ error: "Cần ít nhất một Quỷ Liếm trưởng thành." });
     const shuffled = shuffle(deck);
-    room.players.forEach((p, index) => { p.role = shuffled[index]; p.alive = true; p.loverId = null; });
+    room.players.forEach((p, index) => {
+      p.role = shuffled[index];
+      p.alive = true;
+      p.loverId = null;
+      p.health = p.role === "springroll" ? 2 : 1;
+    });
+    room.villagePowersDisabled = false;
+    room.guardLastTarget = null;
     room.cupidPair = [];
     room.hunterRevealId = null;
     room.accusedId = null;
@@ -183,7 +193,10 @@ io.on("connection", (socket) => {
       else room.actions[player.id] = { targets: [], mode: "skip" };
     } else if (action.type === "witch") {
       if (!["save", "poison"].includes(mode)) return callback?.({ error: "Lựa chọn không hợp lệ." });
-      if (mode === "save" && (!room.witch.save || !room.nightVictim)) return callback?.({ error: "Không thể dùng bùa cứu lúc này." });
+      const nightVictim = getPlayer(room, room.nightVictim);
+      const firstSpringrollLife = nightVictim?.role === "springroll" && (nightVictim.health ?? 2) > 1;
+      if (mode === "save" && (!room.witch.save || !room.nightVictim || firstSpringrollLife)) return callback?.({ error: "Không thể dùng bùa cứu lúc này." });
+      if (mode === "poison" && targets[0] === player.id) return callback?.({ error: "Bạn không thể dùng bùa hại lên chính mình." });
       if (mode === "poison" && (!room.witch.poison || !validateTargets(room, player, action, targets))) return callback?.({ error: "Không thể dùng bùa hại lúc này." });
       room.actions[player.id] = { targets: mode === "save" ? [room.nightVictim] : targets, mode };
     } else if (!validateTargets(room, player, action, targets)) {
@@ -202,7 +215,7 @@ io.on("connection", (socket) => {
         beginNight(io, room);
       }
     } else {
-      room.actions[player.id] = { targets, mode };
+      room.actions[player.id] = { targets, mode: action.betrayalOnly ? "betrayal-only" : mode };
       if (action.type === "cupid") {
         const [a, b] = targets.map((id) => getPlayer(room, id));
         a.loverId = b.id;
@@ -214,7 +227,7 @@ io.on("connection", (socket) => {
         room.seerResult = {
           viewer: player.id,
           targetName: target.name,
-          alignment: ROLE_INFO[target.role].team === "demon" ? "bad" : "good"
+          alignment: ROLE_INFO[target.role].team === "village" ? "good" : "bad"
         };
       }
     }

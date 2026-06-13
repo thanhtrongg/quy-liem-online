@@ -117,6 +117,11 @@ const WIN_DEMON = [
   "Không một ai sống sót. Khu phố giờ đây là lãnh địa của Quỷ Liếm.",
 ];
 
+const WIN_LONER = [
+  "Quỷ Liếm Tinh đứng một mình giữa khu phố im lặng. Phe Độc Hành đã chiến thắng.",
+  "Đàn Quỷ và khu phố đều đã biến mất. Chỉ còn Quỷ Liếm Tinh trên chiếc ngai cuối cùng.",
+];
+
 const WITCH_SAVE = [
   "Một luồng sáng xanh bao bọc lấy nạn nhân. Tử thần đã bị đẩy lùi.",
   "Người đó suýt chết, nhưng một bàn tay từ bóng tối đã kéo họ về.",
@@ -149,6 +154,7 @@ module.exports = {
   SEER_FOUND_GOOD,
   WIN_VILLAGE,
   WIN_DEMON,
+  WIN_LONER,
   WITCH_SAVE,
   GUARD_PROTECT,
 };

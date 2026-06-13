@@ -23,12 +23,37 @@ const phaseNames = {
   hunter: "Phát súng cuối",
   ended: "Trò chơi kết thúc",
 };
-const teamNames = { demon: "Phe Quỷ Liếm", village: "Phe khu phố" };
+const nightStepNames = {
+  cupid: "Người Yêu Cũ thức dậy",
+  wolves: "Đàn Quỷ thức dậy",
+  spirit: "Quỷ Liếm Tinh thức dậy",
+  seer: "Cô Bé Hay Đoán thức dậy",
+  guard: "Gã Béo Nóng Tính thức dậy",
+  witch: "Cậu Bé Chơi Bùa thức dậy",
+};
+const teamNames = {
+  demon: "Phe Quỷ Liếm",
+  village: "Phe khu phố",
+  loner: "Phe Độc Hành",
+};
 const TRANSITION_FLAVOR = {
-  night: { title: "Mọi người đi ngủ", sub: (day) => `Đêm ${day}. Bóng tối ôm trọn khu phố...` },
-  day: { title: "Đang bỏ phiếu", sub: (day) => `${day === 1 ? "Bình minh đầu tiên. Ai sẽ sống, ai sẽ chết?" : `Ngày ${day}. Ai sống? Ai chết?`}` },
-  defense: { title: "Thời gian phản biện", sub: () => "Người bị buộc tội đứng trước đám đông. Lời cuối cùng..." },
-  hunter: { title: "Phát súng cuối", sub: () => "Một người sắp bị kéo xuống mồ..." },
+  night: {
+    title: "Mọi người đi ngủ",
+    sub: (day) => `Đêm ${day}. Bóng tối ôm trọn khu phố...`,
+  },
+  day: {
+    title: "Đang bỏ phiếu",
+    sub: (day) =>
+      `${day === 1 ? "Bình minh đầu tiên. Ai sẽ sống, ai sẽ chết?" : `Ngày ${day}. Ai sống? Ai chết?`}`,
+  },
+  defense: {
+    title: "Thời gian phản biện",
+    sub: () => "Người bị buộc tội đứng trước đám đông. Lời cuối cùng...",
+  },
+  hunter: {
+    title: "Phát súng cuối",
+    sub: () => "Một người sắp bị kéo xuống mồ...",
+  },
 };
 
 function showError(id, message = "") {
@@ -196,7 +221,10 @@ function render() {
     state.isHost || !["lobby", "ended"].includes(state.status),
   );
   $("copy-code").textContent = state.code;
-  $("phase-label").textContent = phaseNames[state.phase] || state.phase;
+  $("phase-label").textContent =
+    state.phase === "night" && state.nightStep
+      ? nightStepNames[state.nightStep] || phaseNames.night
+      : phaseNames[state.phase] || state.phase;
   $("day-label").textContent = state.day
     ? `${state.phase === "night" ? "Đêm" : "Ngày"} ${state.day}`
     : "";
@@ -221,8 +249,12 @@ function render() {
 }
 
 function renderRoleBook() {
-  const labels = { demon: "Phe Quỷ Liếm", village: "Phe khu phố" };
-  $("role-book-list").innerHTML = ["demon", "village"]
+  const labels = {
+    demon: "Phe Quỷ Liếm",
+    village: "Phe khu phố",
+    loner: "Phe Độc Hành",
+  };
+  $("role-book-list").innerHTML = ["demon", "village", "loner"]
     .map((team) => {
       const roles = Object.entries(state.roleInfo).filter(
         ([, info]) => info.team === team,
@@ -253,7 +285,10 @@ function renderEndPanel() {
     : "Chờ chủ phòng mở lại ván hoặc tạo một phòng mới.";
   $("replay-room").classList.toggle("hidden", !state.isHost);
   showError("end-error");
-  const teamOrder = state.winner === "village" ? ["village", "demon"] : ["demon", "village"];
+  const teamOrder = [
+    state.winner,
+    ...["village", "demon", "loner"].filter((team) => team !== state.winner),
+  ];
   const allRoles = [];
   teamOrder.forEach((team) => {
     state.players.forEach((p) => {
@@ -376,18 +411,21 @@ function showDeathScene(names) {
 }
 
 function showConfetti(winner) {
-  const colors = winner === "village" ? ["#e4b45b", "#55d39a", "#f4eff8"] : ["#ef3157", "#ff6d00", "#d50000"];
+  const colors =
+    winner === "village"
+      ? ["#e4b45b", "#55d39a", "#f4eff8"]
+      : ["#ef3157", "#ff6d00", "#d50000"];
   const container = document.createElement("div");
   container.className = "confetti-container";
   for (let i = 0; i < 60; i++) {
     const piece = document.createElement("div");
     piece.className = "confetti-piece";
     piece.style.left = Math.random() * 100 + "%";
-    piece.style.width = (4 + Math.random() * 6) + "px";
-    piece.style.height = (4 + Math.random() * 6) + "px";
+    piece.style.width = 4 + Math.random() * 6 + "px";
+    piece.style.height = 4 + Math.random() * 6 + "px";
     piece.style.background = colors[Math.floor(Math.random() * colors.length)];
     piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
-    piece.style.animationDuration = (2 + Math.random() * 3) + "s";
+    piece.style.animationDuration = 2 + Math.random() * 3 + "s";
     piece.style.animationDelay = Math.random() * 1.5 + "s";
     container.appendChild(piece);
   }
@@ -564,7 +602,7 @@ function renderIdentity() {
       roleName.className = "role-reveal";
       roleDesc.className = "role-reveal";
       roleFlavor.className = "role-reveal";
-      if (state.roleInfo[role].team === "demon")
+      if (state.roleInfo[role].team !== "village")
         roleName.classList.add("is-demon");
       setTimeout(() => {
         roleName.classList.remove("role-reveal", "is-demon");
@@ -588,15 +626,17 @@ function renderIdentity() {
     .filter(Boolean);
   if (state.me?.role === "cupid" && cupidPair?.length === 2)
     bits.push(`Hai người đã ghép đôi: ${cupidPair.join(" và ")}`);
+  if (state.me?.role === "springroll" && state.me.alive)
+    bits.push(`Số mạng còn lại: ${state.me.health}`);
+  if (state.villagePowersDisabled && state.roleInfo[role]?.team === "village")
+    bits.push("Lời nguyền Chá Giò đã kích hoạt: phe dân không còn kỹ năng.");
   const mates = state.players.filter(
     (p) =>
-      p.role &&
       p.id !== state.me?.id &&
-      state.roleInfo[p.role]?.team === "demon" &&
-      state.roleInfo[role]?.team === "demon",
+      p.isWolf,
   );
   if (mates.length)
-    bits.push(`Đồng đội: ${mates.map((p) => p.name).join(", ")}`);
+    bits.push(`Các Quỷ cùng thức dậy: ${mates.map((p) => p.name).join(", ")}`);
   if (state.seerResult)
     bits.push(
       `${state.seerResult.targetName}: ${state.seerResult.alignment === "bad" ? "XẤU" : "TỐT"}`,
@@ -636,7 +676,7 @@ function renderPlayers() {
     <div class="player ${p.alive ? "" : "dead"} ${p.id === state.me?.id ? "me" : ""} ${leadingIds.has(p.id) ? "leading" : ""}" data-id="${p.id}">
       ${renderSigil(p)}
       <div class="player-copy"><strong>${escapeHtml(p.name)}${p.id === state.me?.id ? " (bạn)" : ""}</strong>
-      <small>${p.role ? state.roleInfo[p.role].name : p.connected ? (p.alive ? "Còn sống" : "Đã chết") : "Mất kết nối"}</small>
+      <small>${p.role ? state.roleInfo[p.role].name : p.isWolf ? "Quỷ" : p.connected ? (p.alive ? "Còn sống" : "Đã chết") : "Mất kết nối"}</small>
       </div>${dot}<span class="status-dot"></span>
       ${blankVoters.has(p.id) ? '<span class="white-flag" title="Đã bỏ phiếu trắng">⚑</span>' : ""}
       ${renderVotesFor(p.id)}
@@ -727,8 +767,15 @@ function renderAction() {
     return;
   }
   $("action-title").textContent = action.label;
-  $("action-help").textContent =
-    action.count === 2 ? "Chọn đúng hai người." : "Chạm vào một người để chọn.";
+  $("action-help").textContent = action.betrayalOnly
+    ? "Không còn con mồi cho đàn. Hãy bí mật thủ tiêu một thành viên phe Quỷ."
+    : action.betrayal
+      ? "Đầu tiên chọn con mồi của đàn, sau đó chọn một thành viên phe Quỷ để bí mật thủ tiêu."
+      : action.type === "wolf-vote"
+        ? "Mỗi Quỷ bỏ một phiếu. Mục tiêu có nhiều phiếu nhất sẽ bị liếm; hòa phiếu thì không ai chết."
+      : action.count === 2
+        ? "Chọn đúng hai người."
+        : "Chạm vào một người để chọn.";
   if (action.type === "witch") renderWitch(action);
   else renderTargets(action);
   if (action.allowSkip) {
@@ -742,17 +789,26 @@ function renderAction() {
 function eligible(action, player) {
   if (!player.alive) return false;
   if (action.exclude?.includes(player.id)) return false;
-  if (
-    action.excludeTeam &&
-    player.role &&
-    state.roleInfo[player.role]?.team === "demon"
-  )
+  const isWolf =
+    player.isWolf ||
+    (player.role && ["demon", "loner"].includes(state.roleInfo[player.role]?.team));
+  if (action.betrayal) {
+    if (selected.length === 0) return !isWolf;
+    return (
+      selected.includes(player.id) || (isWolf && player.id !== state.me.id)
+    );
+  }
+  if (action.betrayalOnly) return isWolf && player.id !== state.me.id;
+  if (action.excludeRegularWolf && isWolf) return false;
+  if (action.excludeWolf && isWolf) return false;
+  if (action.type === "witch" && witchMode === "poison" && player.id === state.me.id)
     return false;
   if (action.type === "hunter" && player.id === state.me.id) return false;
   return true;
 }
 
 function renderTargets(action) {
+  if (!selected.length && action.currentTarget) selected = [action.currentTarget];
   const choices = state.players.filter((p) => eligible(action, p));
   $("targets").innerHTML = choices
     .map(
@@ -764,7 +820,11 @@ function renderTargets(action) {
     (el) =>
       (el.onclick = () => {
         const id = el.dataset.id;
-        if (selected.includes(id)) selected = selected.filter((x) => x !== id);
+        if (action.betrayal && selected[0] === id) selected = [];
+        else if (action.betrayal && selected[1] === id)
+          selected = [selected[0]];
+        else if (selected.includes(id))
+          selected = selected.filter((x) => x !== id);
         else if (selected.length < action.count) selected.push(id);
         else selected = [id];
         renderAction();
@@ -815,7 +875,9 @@ function submit(mode) {
         playVoteSound();
         const targetId = selected[0];
         if (targetId) {
-          const playerEl = document.querySelector(`.player[data-id="${targetId}"]`);
+          const playerEl = document.querySelector(
+            `.player[data-id="${targetId}"]`,
+          );
           if (playerEl) {
             playerEl.classList.remove("vote-pop");
             void playerEl.offsetWidth;
@@ -824,7 +886,11 @@ function submit(mode) {
         }
       }
       const identity = $("identity");
-      if (identity && state.action?.type !== "vote" && state.action?.type !== "verdict") {
+      if (
+        identity &&
+        state.action?.type !== "vote" &&
+        state.action?.type !== "verdict"
+      ) {
         identity.classList.remove("action-flash");
         void identity.offsetWidth;
         identity.classList.add("action-flash");
@@ -852,7 +918,7 @@ function renderHost() {
   $("role-config").innerHTML = Object.entries(state.roles)
     .map(
       ([role, count]) => `
-    <label class="role-control"><span>${state.roleInfo[role].name}</span><input type="number" min="0" max="20" data-role="${role}" value="${count}"></label>`,
+    <label class="role-control"><span>${state.roleInfo[role].name}</span><input type="number" min="0" max="${role === "spirit" ? 1 : 20}" data-role="${role}" value="${count}"></label>`,
     )
     .join("");
   $("role-total").textContent =
@@ -900,53 +966,114 @@ function RoleParticles() {
   let currentRole = null;
   let particles = [];
   let running = false;
+  let lastFrame = 0;
+  let resizeTimer = null;
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const lowPower =
+    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+    (navigator.deviceMemory && navigator.deviceMemory <= 4);
+  const frameInterval = 1000 / (lowPower ? 15 : 24);
+  const quality = lowPower ? 0.5 : 0.75;
+  const animatedRoles = new Set([
+    "__night__",
+    "demon",
+    "junior",
+    "spirit",
+    "witch",
+    "cupid",
+    "guard",
+    "seer",
+  ]);
 
   this.init = () => {
     canvas = $("#role-particles");
     if (!canvas) return;
-    ctx = canvas.getContext("2d");
+    if (reducedMotion) {
+      canvas.hidden = true;
+      return;
+    }
+    ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     resize();
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", queueResize, { passive: true });
+    document.addEventListener("visibilitychange", handleVisibility);
+    if (currentRole) start();
   };
+
+  function queueResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 150);
+  }
 
   function resize() {
     if (!canvas) return;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = Math.ceil(window.innerWidth * quality);
+    canvas.height = Math.ceil(window.innerHeight * quality);
+    canvas.style.width = `${window.innerWidth}px`;
+    canvas.style.height = `${window.innerHeight}px`;
+  }
+
+  function handleVisibility() {
+    if (document.hidden) stopLoop();
+    else if (currentRole) start();
+  }
+
+  function stopLoop() {
+    if (animId) cancelAnimationFrame(animId);
+    animId = null;
+    running = false;
+  }
+
+  function start() {
+    if (running || !canvas || !ctx || document.hidden || reducedMotion) return;
+    running = true;
+    lastFrame = 0;
+    animId = requestAnimationFrame(loop);
   }
 
   this.setRole = (role, phase) => {
-    const key = role || (phase === "night" ? "__night__" : "");
+    const requested = role || (phase === "night" ? "__night__" : "");
+    const key = animatedRoles.has(requested) ? requested : "";
     if (key === currentRole) return;
     currentRole = key;
     particles = [];
-    if (running) { cancelAnimationFrame(animId); running = false; }
-    if (!key || !canvas) return;
-    running = true;
-    loop();
+    stopLoop();
+    if (!key || !canvas || !ctx) return;
+    start();
   };
 
-  function loop() {
+  function loop(now) {
     animId = requestAnimationFrame(loop);
+    if (now - lastFrame < frameInterval) return;
+    lastFrame = now;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const count = particleCount();
     while (particles.length < count) particles.push(createParticle());
     while (particles.length > count) particles.pop();
-    particles.forEach((p) => { update(p); draw(p); });
+    particles.forEach((p) => {
+      update(p);
+      draw(p);
+    });
   }
 
   function particleCount() {
-    if (currentRole === "__night__") return 10;
-    if (currentRole === "demon" || currentRole === "junior") return 18;
-    if (currentRole === "witch") return 12;
-    if (currentRole === "cupid") return 10;
-    if (currentRole === "guard") return 8;
-    if (currentRole === "seer") return 10;
+    const scale = lowPower ? 0.5 : 1;
+    if (currentRole === "__night__") return Math.ceil(7 * scale);
+    if (
+      currentRole === "demon" ||
+      currentRole === "junior" ||
+      currentRole === "spirit"
+    )
+      return Math.ceil(11 * scale);
+    if (currentRole === "witch") return Math.ceil(8 * scale);
+    if (currentRole === "cupid") return Math.ceil(7 * scale);
+    if (currentRole === "guard") return Math.ceil(6 * scale);
+    if (currentRole === "seer") return Math.ceil(7 * scale);
     return 0;
   }
 
   function createParticle() {
-    const w = canvas.width, h = canvas.height;
+    const w = canvas.width,
+      h = canvas.height;
     const base = {
       x: Math.random() * w,
       y: h + 10,
@@ -963,7 +1090,11 @@ function RoleParticles() {
       base.decay = 0.002 + Math.random() * 0.004;
       base.speedY = -(0.08 + Math.random() * 0.2);
       base.speedX = (Math.random() - 0.5) * 0.15;
-    } else if (currentRole === "demon" || currentRole === "junior") {
+    } else if (
+      currentRole === "demon" ||
+      currentRole === "junior" ||
+      currentRole === "spirit"
+    ) {
       base.size = 3 + Math.random() * 5;
       base.decay = 0.004 + Math.random() * 0.008;
       base.speedX = (Math.random() - 0.5) * 0.3;
@@ -996,20 +1127,17 @@ function RoleParticles() {
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
     } else if (currentRole === "demon") {
-      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
-      grad.addColorStop(0, `rgba(255, 23, 68, ${alpha})`);
-      grad.addColorStop(0.5, `rgba(255, 109, 0, ${alpha * 0.5})`);
-      grad.addColorStop(1, `rgba(255, 23, 68, 0)`);
-      ctx.fillStyle = grad;
+      ctx.fillStyle = `rgba(255, 45, 65, ${alpha * 0.48})`;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
     } else if (currentRole === "junior") {
-      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
-      grad.addColorStop(0, `rgba(255, 145, 0, ${alpha})`);
-      grad.addColorStop(0.5, `rgba(255, 109, 0, ${alpha * 0.5})`);
-      grad.addColorStop(1, `rgba(255, 145, 0, 0)`);
-      ctx.fillStyle = grad;
+      ctx.fillStyle = `rgba(255, 145, 0, ${alpha * 0.45})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (currentRole === "spirit") {
+      ctx.fillStyle = `rgba(177, 110, 220, ${alpha * 0.42})`;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
@@ -1024,13 +1152,10 @@ function RoleParticles() {
       ctx.arc(p.x, p.y, p.size * 0.3, 0, Math.PI * 2);
       ctx.fill();
     } else if (currentRole === "seer") {
-      ctx.shadowColor = `rgba(179, 136, 255, ${alpha * 0.5})`;
-      ctx.shadowBlur = 8;
-      ctx.fillStyle = `rgba(179, 136, 255, ${alpha * 0.2})`;
+      ctx.fillStyle = `rgba(179, 136, 255, ${alpha * 0.3})`;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
-      ctx.shadowBlur = 0;
     } else if (currentRole === "cupid") {
       ctx.fillStyle = `rgba(240, 98, 146, ${alpha * 0.35})`;
       drawHeart(ctx, p.x, p.y, p.size * 0.5);
@@ -1049,14 +1174,27 @@ function RoleParticles() {
   function drawHeart(ctx, x, y, size) {
     ctx.beginPath();
     ctx.moveTo(x, y + size * 0.3);
-    ctx.bezierCurveTo(x - size, y - size * 0.3, x - size * 0.5, y - size, x, y - size * 0.5);
-    ctx.bezierCurveTo(x + size * 0.5, y - size, x + size, y - size * 0.3, x, y + size * 0.3);
+    ctx.bezierCurveTo(
+      x - size,
+      y - size * 0.3,
+      x - size * 0.5,
+      y - size,
+      x,
+      y - size * 0.5,
+    );
+    ctx.bezierCurveTo(
+      x + size * 0.5,
+      y - size,
+      x + size,
+      y - size * 0.3,
+      x,
+      y + size * 0.3,
+    );
     ctx.fill();
   }
 
   this.stop = () => {
-    if (animId) cancelAnimationFrame(animId);
-    running = false;
+    stopLoop();
     particles = [];
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
   };

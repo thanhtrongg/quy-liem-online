@@ -1,6 +1,8 @@
 const { spawn } = require("child_process");
 const { io } = require("socket.io-client");
 const assert = require("assert");
+const { killWithChains, buildNightSteps, chooseWolfVictim, actorsForStep } = require("../game/engine");
+const { actionFor } = require("../game/state");
 
 const port = 3200 + Math.floor(Math.random() * 700);
 const origin = `http://localhost:${port}`;
@@ -8,7 +10,7 @@ const latest = new WeakMap();
 let openClients = [];
 const server = spawn(process.execPath, ["server.js"], {
   cwd: process.cwd(),
-  env: { ...process.env, PORT: String(port), VOTE_DURATION_MS: "1000", DEFENSE_DURATION_MS: "160" },
+  env: { ...process.env, PORT: String(port), VOTE_DURATION_MS: "1000", DEFENSE_DURATION_MS: "160", NIGHT_ACTION_DURATION_MS: "160", NIGHT_FAKE_DURATION_MIN_MS: "60", NIGHT_FAKE_DURATION_MAX_MS: "90" },
   stdio: ["ignore", "pipe", "pipe"]
 });
 const serverReady = new Promise((resolve, reject) => {
@@ -63,7 +65,130 @@ async function createGroup(prefix, roles) {
   return clients;
 }
 
+function testHunterDeathRules() {
+  const makeRoom = (phase, players) => ({
+    phase,
+    players,
+    logs: [],
+    villagePowersDisabled: false,
+    pendingHunter: null,
+    hunterRevealId: null,
+    pendingAfterHunter: null
+  });
+  const player = (id, role, loverId = null) => ({ id, name: id, role, loverId, alive: true, health: role === "springroll" ? 2 : 1 });
+
+  const demonVictim = makeRoom("night", [player("hunter", "hunter"), player("other", "villager")]);
+  killWithChains(demonVictim, ["hunter"], "trong đêm", true);
+  assert.equal(demonVictim.pendingHunter, "hunter");
+
+  const hanged = makeRoom("defense", [player("hunter", "hunter"), player("other", "villager")]);
+  killWithChains(hanged, ["hunter"], "bị khu phố treo cổ", true);
+  assert.equal(hanged.pendingHunter, "hunter");
+
+  const poisoned = makeRoom("night", [player("hunter", "hunter"), player("other", "villager")]);
+  killWithChains(poisoned, ["hunter"], "bị phù thủy đầu độc");
+  assert.equal(poisoned.pendingHunter, null);
+
+  const loverDeath = makeRoom("night", [
+    player("victim", "villager", "hunter"),
+    player("hunter", "hunter", "victim")
+  ]);
+  killWithChains(loverDeath, ["victim"], "trong đêm", true);
+  assert.equal(loverDeath.pendingHunter, null);
+  assert.equal(loverDeath.players.find((entry) => entry.id === "hunter").alive, false);
+
+  const finalDuel = makeRoom("night", [player("demon", "demon"), player("spirit", "spirit")]);
+  finalDuel.status = "playing";
+  finalDuel.actions = {};
+  finalDuel.day = 1;
+  finalDuel.nightStep = "wolves";
+  assert.equal(actionFor(finalDuel, finalDuel.players[0]).type, "wolf-vote");
+  assert.equal(actionFor(finalDuel, finalDuel.players[1]), null);
+  finalDuel.day = 3;
+  finalDuel.nightStep = "spirit";
+  assert.equal(actionFor(finalDuel, finalDuel.players[1]).betrayalOnly, true);
+
+  const springrollRoom = makeRoom("night", [player("springroll", "springroll"), player("seer", "seer")]);
+  killWithChains(springrollRoom, ["springroll"], "trong đêm", true);
+  assert.equal(springrollRoom.players[0].alive, true);
+  assert.equal(springrollRoom.players[0].health, 1);
+  assert.equal(springrollRoom.villagePowersDisabled, false);
+  killWithChains(springrollRoom, ["springroll"], "trong đêm", true);
+  assert.equal(springrollRoom.players[0].alive, false);
+  assert.equal(springrollRoom.villagePowersDisabled, true);
+  springrollRoom.status = "playing";
+  springrollRoom.actions = {};
+  springrollRoom.day = 1;
+  springrollRoom.nightStep = "seer";
+  assert.equal(actionFor(springrollRoom, springrollRoom.players[1]), null);
+
+  const guardRoom = makeRoom("night", [player("guard", "guard"), player("other", "villager")]);
+  guardRoom.status = "playing";
+  guardRoom.actions = {};
+  guardRoom.day = 1;
+  guardRoom.nightStep = "guard";
+  guardRoom.guardLastTarget = null;
+  assert.deepEqual(actionFor(guardRoom, guardRoom.players[0]).exclude, []);
+  guardRoom.day = 2;
+  guardRoom.guardLastTarget = "other";
+  assert.deepEqual(actionFor(guardRoom, guardRoom.players[0]).exclude, ["other"]);
+  guardRoom.guardLastTarget = "guard";
+  guardRoom.day = 3;
+  assert.deepEqual(actionFor(guardRoom, guardRoom.players[0]).exclude, ["guard"]);
+
+  const witchSpringrollRoom = makeRoom("night", [player("witch", "witch"), player("springroll", "springroll")]);
+  witchSpringrollRoom.status = "playing";
+  witchSpringrollRoom.actions = {};
+  witchSpringrollRoom.day = 1;
+  witchSpringrollRoom.nightStep = "witch";
+  witchSpringrollRoom.nightVictimReady = true;
+  witchSpringrollRoom.nightVictim = "springroll";
+  assert.equal(actionFor(witchSpringrollRoom, witchSpringrollRoom.players[0]).victimId, null);
+  witchSpringrollRoom.players[1].health = 1;
+  assert.equal(actionFor(witchSpringrollRoom, witchSpringrollRoom.players[0]).victimId, "springroll");
+
+  const orderedNight = makeRoom("night", [
+    player("cupid", "cupid"),
+    player("demon", "demon"),
+    player("junior", "junior"),
+    player("spirit", "spirit"),
+    player("seer", "seer"),
+    player("guard", "guard"),
+    player("witch", "witch")
+  ]);
+  orderedNight.day = 1;
+  orderedNight.villagePowersDisabled = false;
+  assert.deepEqual(buildNightSteps(orderedNight), ["cupid", "wolves", "spirit", "seer", "guard", "witch"]);
+  orderedNight.day = 2;
+  assert.deepEqual(buildNightSteps(orderedNight), ["guard", "wolves", "seer", "witch"]);
+  orderedNight.day = 3;
+  assert.deepEqual(buildNightSteps(orderedNight), ["guard", "wolves", "spirit", "seer", "witch"]);
+  orderedNight.players.find((entry) => entry.role === "seer").alive = false;
+  assert(buildNightSteps(orderedNight).includes("seer"));
+  assert.equal(actorsForStep(orderedNight, "seer").length, 0);
+
+  const majorityRoom = makeRoom("night", [
+    player("wolf-a", "demon"),
+    player("wolf-b", "junior"),
+    player("wolf-c", "demon"),
+    player("victim-a", "villager"),
+    player("victim-b", "villager")
+  ]);
+  majorityRoom.actions = {
+    "wolf-a": { targets: ["victim-a"], mode: null },
+    "wolf-b": { targets: ["victim-a"], mode: null },
+    "wolf-c": { targets: ["victim-b"], mode: null }
+  };
+  chooseWolfVictim(majorityRoom);
+  assert.equal(majorityRoom.nightVictim, "victim-a");
+  majorityRoom.actions["wolf-b"] = { targets: [], mode: "skip" };
+  majorityRoom.actions["wolf-c"] = { targets: [], mode: "skip" };
+  chooseWolfVictim(majorityRoom);
+  assert.equal(majorityRoom.nightVictim, null);
+}
+
 async function run() {
+  testHunterDeathRules();
   await serverReady;
   const managed = await Promise.all([connect(), connect(), connect()]);
   managed.forEach((client) => client.on("state", (state) => latest.set(client, state)));
@@ -123,16 +248,32 @@ async function run() {
   const saveAvailable = nextState(witchClients[witchIndex], (state) => state.action?.type === "witch" && state.action.victimId === victim.id);
   assert((await emit(witchClients[witchDemonIndex], "act", { targets: [victim.id], mode: null })).ok);
   await saveAvailable;
+  assert((await emit(witchClients[witchIndex], "act", { targets: [witchNight[witchIndex].me.id], mode: "poison" })).error);
   const savedDay = witchClients.map((client) => nextState(client, (state) => state.phase === "day"));
   assert((await emit(witchClients[witchIndex], "act", { targets: [], mode: "save" })).ok);
   assert((await Promise.all(savedDay)).every((state) => state.players.every((player) => player.alive)));
   witchClients.forEach((client) => client.disconnect());
+
+  const guardedSpringrollClients = await createGroup("Guarded Springroll", { demon: 1, seer: 0, witch: 0, guard: 1, villager: 1, springroll: 1, hunter: 0, cupid: 0, junior: 0 });
+  const guardedSpringrollNight = await Promise.all(guardedSpringrollClients.map((client) => nextState(client, (state) => state.phase === "night")));
+  const guardedDemonIndex = guardedSpringrollNight.findIndex((state) => state.me.role === "demon");
+  const guardIndex = guardedSpringrollNight.findIndex((state) => state.me.role === "guard");
+  const springrollIndex = guardedSpringrollNight.findIndex((state) => state.me.role === "springroll");
+  const springrollId = guardedSpringrollNight[springrollIndex].me.id;
+  const guardedSpringrollDay = guardedSpringrollClients.map((client) => nextState(client, (state) => state.phase === "day"));
+  assert((await emit(guardedSpringrollClients[guardedDemonIndex], "act", { targets: [springrollId], mode: null })).ok);
+  await nextState(guardedSpringrollClients[guardIndex], (state) => state.action?.type === "guard");
+  assert((await emit(guardedSpringrollClients[guardIndex], "act", { targets: [springrollId], mode: null })).ok);
+  const guardedSpringrollDayStates = await Promise.all(guardedSpringrollDay);
+  assert.equal(guardedSpringrollDayStates[springrollIndex].me.health, 2);
+  guardedSpringrollClients.forEach((client) => client.disconnect());
 
   const seerClients = await createGroup("Seer", { demon: 1, seer: 1, witch: 0, guard: 0, villager: 2, hunter: 0, cupid: 0, junior: 0 });
   const seerNight = await Promise.all(seerClients.map((client) => nextState(client, (state) => state.phase === "night")));
   const seerIndex = seerNight.findIndex((state) => state.me.role === "seer");
   const seenDemon = seerNight.find((state) => state.me.role === "demon").me.id;
   const alignmentResult = nextState(seerClients[seerIndex], (state) => state.seerResult?.targetName);
+  await nextState(seerClients[seerIndex], (state) => state.action?.type === "seer");
   assert((await emit(seerClients[seerIndex], "act", { targets: [seenDemon], mode: null })).ok);
   const seerState = await alignmentResult;
   assert.equal(seerState.seerResult.alignment, "bad");
@@ -150,10 +291,51 @@ async function run() {
   assert(replayStates.every((state) => state.players.every((player) => player.alive && player.role === null)));
   equalClients.forEach((client) => client.disconnect());
 
+  const spiritClients = await createGroup("Spirit", { demon: 1, spirit: 1, seer: 0, witch: 0, guard: 0, villager: 2, hunter: 0, cupid: 0, junior: 0 });
+  const spiritFirstNight = await Promise.all(spiritClients.map((client) => nextState(client, (state) => state.phase === "night")));
+  const spiritIndex = spiritFirstNight.findIndex((state) => state.me.role === "spirit");
+  const spiritDemonIndex = spiritFirstNight.findIndex((state) => state.me.role === "demon");
+  const firstSpiritVictim = spiritFirstNight.find((state) => state.me.role === "villager").me;
+  assert.equal(spiritFirstNight[spiritIndex].action, null);
+  const maskedSpirit = spiritFirstNight[spiritDemonIndex].players.find((player) => player.id === spiritFirstNight[spiritIndex].me.id);
+  assert.equal(maskedSpirit.role, null);
+  assert.equal(maskedSpirit.isWolf, false);
+  const spiritFirstDay = spiritClients.map((client) => nextState(client, (state) => state.phase === "day"));
+  assert((await emit(spiritClients[spiritDemonIndex], "act", { targets: [firstSpiritVictim.id], mode: null })).ok);
+  const spiritReveal = await nextState(spiritClients[spiritIndex], (state) => state.nightStep === "spirit" && state.action?.type === "acknowledge");
+  const revealedDemon = spiritReveal.players.find((player) => player.id === spiritFirstNight[spiritDemonIndex].me.id);
+  assert.equal(revealedDemon.role, null);
+  assert.equal(revealedDemon.isWolf, true);
+  assert((await emit(spiritClients[spiritIndex], "act", { targets: [], mode: "skip" })).ok);
+  const spiritFirstDayStates = await Promise.all(spiritFirstDay);
+  const spiritLiving = spiritFirstDayStates.map((state, index) => ({ state, index })).filter(({ state }) => state.me.alive);
+  const spiritSecondNight = spiritClients.map((client) => nextState(client, (state) => state.phase === "night" && state.day === 2));
+  for (const { index } of spiritLiving) assert((await emit(spiritClients[index], "act", { targets: [], mode: "skip" })).ok);
+  const spiritSecondNightStates = await Promise.all(spiritSecondNight);
+  const secondSpiritState = spiritSecondNightStates[spiritIndex];
+  const secondSpiritVictim = spiritSecondNightStates.find((state) => state.me.alive && state.me.role === "villager").me;
+  const spiritDemonId = spiritSecondNightStates[spiritDemonIndex].me.id;
+  assert.equal(secondSpiritState.action, null);
+  const spiritSecondDay = spiritClients.map((client) => nextState(client, (state) => state.phase === "day" && state.day === 2));
+  assert((await emit(spiritClients[spiritDemonIndex], "act", { targets: [secondSpiritVictim.id], mode: null })).ok);
+  const spiritSecondDayStates = await Promise.all(spiritSecondDay);
+  const spiritDuelists = spiritSecondDayStates.map((state, index) => ({ state, index })).filter(({ state }) => state.me.alive);
+  const spiritThirdNight = nextState(spiritClients[spiritIndex], (state) => state.nightStep === "spirit" && state.day === 3);
+  for (const { index } of spiritDuelists) assert((await emit(spiritClients[index], "act", { targets: [], mode: "skip" })).ok);
+  await nextState(spiritClients[spiritDemonIndex], (state) => state.nightStep === "wolves" && state.action?.type === "wolf-vote");
+  assert((await emit(spiritClients[spiritDemonIndex], "act", { targets: [], mode: "skip" })).ok);
+  const thirdSpiritState = await spiritThirdNight;
+  assert.equal(thirdSpiritState.action.betrayalOnly, true);
+  const lonerWin = spiritClients.map((client) => nextState(client, (state) => state.phase === "ended"));
+  assert((await emit(spiritClients[spiritIndex], "act", { targets: [spiritDemonId], mode: null })).ok);
+  assert((await Promise.all(lonerWin)).every((state) => state.winner === "loner"));
+  spiritClients.forEach((client) => client.disconnect());
+
   const cupidClients = await createGroup("Cupid", { demon: 1, seer: 0, witch: 0, guard: 0, villager: 2, hunter: 0, cupid: 1, junior: 0 });
   const cupidNight = await Promise.all(cupidClients.map((client) => nextState(client, (state) => state.phase === "night")));
   const cupidIndex = cupidNight.findIndex((state) => state.me.role === "cupid");
   const cupidDemonIndex = cupidNight.findIndex((state) => state.me.role === "demon");
+  assert.equal(cupidNight[cupidIndex].roleInfo.cupid.team, "loner");
   const cupidSelf = cupidNight[cupidIndex].me.id;
   const cupidPartner = cupidNight[cupidIndex].players.find((player) => player.id !== cupidSelf && player.id !== cupidNight[cupidDemonIndex].me.id);
   const pairVisible = nextState(cupidClients[cupidIndex], (state) => state.me.cupidPair?.length === 2);

@@ -1,4 +1,4 @@
-const { ROLE_INFO } = require("./roles");
+const { ROLE_INFO, isWolf } = require("./roles");
 const { getPlayer, alive, addLog } = require("./utils");
 const { emitRoom, actionFor } = require("./state");
 const { schedulePhase, clearPhaseTimer } = require("./room");
@@ -7,7 +7,7 @@ const { pick,
   VOTE_TIE, VOTE_BLANK,
   DEATH_DEMON, DEATH_HANG, DEATH_WITCH, DEATH_HUNTER, DEATH_LOVER,
   NIGHT_PEACEFUL, NIGHT_UNREST,
-  WIN_VILLAGE, WIN_DEMON,
+  WIN_VILLAGE, WIN_DEMON, WIN_LONER,
   WITCH_SAVE, GUARD_PROTECT
 } = require("./narrative");
 
@@ -15,41 +15,80 @@ function fmt(text, vars) {
   return text.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "???");
 }
 
-function requiredNightActors(room) {
-  return alive(room).filter((p) => {
-    const action = actionFor(room, p);
-    return action && action.type !== "witch";
-  });
+function actorsForStep(room, step) {
+  const living = alive(room);
+  if (step === "wolves") return living.filter((p) => ["demon", "junior"].includes(p.role));
+  if (room.villagePowersDisabled && ["seer", "guard", "witch"].includes(step)) return [];
+  return living.filter((p) => p.role === step);
 }
 
-function setNightVictimIfReady(room) {
-  const adults = alive(room).filter((p) => p.role === "demon");
-  const hunters = adults.length ? adults : alive(room).filter((p) => p.role === "junior");
-  if (!hunters.length || !hunters.every((p) => room.actions[p.id])) return false;
+function hasRoleForStep(room, step) {
+  if (step === "wolves") return room.players.some((p) => ["demon", "junior"].includes(p.role));
+  return room.players.some((p) => p.role === step);
+}
+
+function buildNightSteps(room) {
+  const steps = room.day === 1
+    ? ["cupid", "wolves", "spirit", "seer", "guard", "witch"]
+    : ["guard", "wolves", ...(room.day % 3 === 0 ? ["spirit"] : []), "seer", "witch"];
+  return steps.filter((step) => hasRoleForStep(room, step));
+}
+
+function fakeStepDuration() {
+  const min = Number(process.env.NIGHT_FAKE_DURATION_MIN_MS) || 5000;
+  const max = Math.max(min, Number(process.env.NIGHT_FAKE_DURATION_MAX_MS) || 10000);
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+function chooseWolfVictim(room) {
+  const wolves = actorsForStep(room, "wolves");
   const counts = {};
-  hunters.forEach((p) => {
-    const target = room.actions[p.id].targets[0];
-    if (target) counts[target] = (counts[target] || 0) + 1;
+  wolves.forEach((wolf) => {
+    const action = room.actions[wolf.id];
+    const target = action?.mode === "skip" ? null : action?.targets?.[0] || null;
+    const key = target || "__skip__";
+    counts[key] = (counts[key] || 0) + 1;
   });
   const max = Math.max(0, ...Object.values(counts));
-  const top = Object.keys(counts).filter((id) => counts[id] === max);
-  room.nightVictim = top.length === 1 ? top[0] : null;
+  const top = Object.keys(counts).filter((key) => counts[key] === max);
+  room.nightVictim = top.length === 1 && top[0] !== "__skip__" ? top[0] : null;
   room.nightVictimReady = true;
-  return true;
 }
 
-function checkNightReady(io, room) {
-  setNightVictimIfReady(room);
-  const required = requiredNightActors(room);
-  const baseReady = required.every((p) => room.actions[p.id]);
-  if (!baseReady) return;
-  setNightVictimIfReady(room);
-  const witch = alive(room).find((p) => p.role === "witch");
-  if (witch && !room.actions[witch.id]) {
+function finishNightStep(io, room) {
+  if (room.phase !== "night" || !room.nightStep) return;
+  if (room.nightStep === "wolves") chooseWolfVictim(room);
+  room.nightStepIndex += 1;
+  startNightStep(io, room);
+}
+
+function startNightStep(io, room) {
+  clearPhaseTimer(room);
+  while (room.nightStepIndex < room.nightSteps.length) {
+    room.nightStep = room.nightSteps[room.nightStepIndex];
+    const actors = actorsForStep(room, room.nightStep);
+    const duration = actors.length
+      ? Number(process.env.NIGHT_ACTION_DURATION_MS) || 30000
+      : fakeStepDuration();
+    schedulePhase(room, duration, () => finishNightStep(io, room));
     emitRoom(io, room);
     return;
   }
+  room.nightStep = null;
   resolveNight(io, room);
+}
+
+function checkNightReady(io, room) {
+  if (room.phase !== "night" || !room.nightStep) return;
+  const actors = actorsForStep(room, room.nightStep);
+  if (!actors.length) return emitRoom(io, room);
+  if (room.nightStep === "wolves") {
+    if (!actors.every((p) => room.actions[p.id])) return emitRoom(io, room);
+    finishNightStep(io, room);
+    return;
+  }
+  if (actors.every((p) => room.actions[p.id])) finishNightStep(io, room);
+  else emitRoom(io, room);
 }
 
 function killReason(room, id, cause) {
@@ -59,17 +98,25 @@ function killReason(room, id, cause) {
   if (cause === "bị khu phố treo cổ") return fmt(pick(DEATH_HANG), { name: p.name });
   if (cause === "bị Lọ Vương kéo theo") return fmt(pick(DEATH_HUNTER), { name: p.name });
   if (cause === "bị phù thủy đầu độc") return fmt(pick(DEATH_WITCH), { name: p.name });
+  if (cause === "bị Quỷ Liếm Tinh thủ tiêu") return `${p.name} đã bị một móng vuốt trong chính đàn Quỷ xé nát.`;
   return cause;
 }
 
-function killWithChains(room, ids, reason) {
+function killWithChains(room, ids, reason, hunterCanRetaliate = false) {
   const deathPhase = room.phase;
+  const directVictims = new Set(ids.filter(Boolean));
   const queue = ids.filter(Boolean);
   const dead = [];
   while (queue.length) {
     const id = queue.shift();
     const player = getPlayer(room, id);
     if (!player?.alive) continue;
+    if (player.role === "springroll" && (player.health ?? 2) > 1) {
+      player.health = (player.health ?? 2) - 1;
+      addLog(room, `${player.name} đã mất một mạng nhưng vẫn còn sống. Lớp vỏ Chá Giò đã nứt.`, "phase");
+      continue;
+    }
+    player.health = 0;
     player.alive = false;
     dead.push(player);
     const msg = killReason(room, id, reason);
@@ -79,8 +126,16 @@ function killWithChains(room, ids, reason) {
       addLog(room, fmt(pick(DEATH_LOVER), { name: lover.name }), "death");
       queue.push(player.loverId);
     }
+    if (player.role === "springroll" && !room.villagePowersDisabled) {
+      room.villagePowersDisabled = true;
+      room.pendingHunter = null;
+      room.hunterRevealId = null;
+      addLog(room, "Chá Giò đã chết hẳn. Lời nguyền khiến toàn bộ phe dân mất hết kỹ năng.", "phase");
+    }
   }
-  const hunter = dead.find((p) => p.role === "hunter");
+  const hunter = hunterCanRetaliate
+    ? dead.find((p) => p.role === "hunter" && directVictims.has(p.id) && !room.villagePowersDisabled)
+    : null;
   if (hunter) {
     room.pendingHunter = hunter.id;
     room.hunterRevealId = hunter.id;
@@ -95,18 +150,20 @@ function killWithChains(room, ids, reason) {
 function resolveNight(io, room) {
   const guard = alive(room).find((p) => p.role === "guard");
   const guardTarget = guard ? room.actions[guard.id]?.targets[0] : null;
-  room.guardLast = guardTarget || null;
+  room.guardLastTarget = guardTarget || null;
   const witch = alive(room).find((p) => p.role === "witch");
   const witchAction = witch ? room.actions[witch.id] : null;
   let victim = room.nightVictim;
   let saved = false;
+  const victimPlayer = getPlayer(room, victim);
+  const firstSpringrollLife = victimPlayer?.role === "springroll" && (victimPlayer.health ?? 2) > 1;
   if (victim && guardTarget === victim) {
     victim = null;
     saved = true;
     const name = getPlayer(room, guardTarget)?.name;
     addLog(room, fmt(pick(GUARD_PROTECT), { name }), "phase");
   }
-  if (witchAction?.mode === "save" && victim) {
+  if (witchAction?.mode === "save" && victim && !firstSpringrollLife) {
     const name = getPlayer(room, victim)?.name;
     addLog(room, fmt(pick(WITCH_SAVE), { name }), "phase");
     victim = null;
@@ -114,14 +171,22 @@ function resolveNight(io, room) {
   }
   const deaths = [];
   if (victim) deaths.push(victim);
+  const spirit = alive(room).find((p) => p.role === "spirit");
+  const spiritAction = spirit && room.actions[spirit.id];
+  const spiritVictim = spiritAction?.mode === "betrayal-only" ? spiritAction.targets[0] : spiritAction?.targets[1];
+  if (spiritVictim && !deaths.includes(spiritVictim)) deaths.push(spiritVictim);
   if (witchAction?.mode === "poison" && witchAction.targets[0]) {
-    deaths.push(witchAction.targets[0]);
+    if (!deaths.includes(witchAction.targets[0])) deaths.push(witchAction.targets[0]);
     room.witch.poison = false;
   }
   const logMsg = deaths.length ? pick(NIGHT_UNREST) : pick(NIGHT_PEACEFUL);
   addLog(room, logMsg, "phase");
-  const reasons = deaths.map((id) => id === witchAction?.targets[0] ? "bị phù thủy đầu độc" : "trong đêm");
-  deaths.forEach((id, i) => killWithChains(room, [id], reasons[i]));
+  const reasons = deaths.map((id) => {
+    if (id === spiritVictim) return "bị Quỷ Liếm Tinh thủ tiêu";
+    if (id === witchAction?.targets[0]) return "bị phù thủy đầu độc";
+    return "trong đêm";
+  });
+  deaths.forEach((id, i) => killWithChains(room, [id], reasons[i], id === victim));
   if (room.pendingHunter) beginDay(io, room, true);
   else if (!checkWinner(io, room)) beginDay(io, room);
   emitRoom(io, room);
@@ -168,11 +233,12 @@ function beginNight(io, room) {
   room.verdicts = {};
   room.nightVictim = null;
   room.nightVictimReady = false;
+  room.nightSteps = buildNightSteps(room);
+  room.nightStepIndex = 0;
+  room.nightStep = null;
   room.accusedId = null;
   addLog(room, pick(NIGHT_BEGIN), "phase");
-  setTimeout(() => {
-    if (room.phase === "night") checkNightReady(io, room);
-  }, 100);
+  startNightStep(io, room);
   return true;
 }
 
@@ -221,7 +287,7 @@ function finishDefense(io, room) {
   const name = getPlayer(room, accusedId)?.name;
   addLog(room, `${name} bị kết án với ${killVotes} phiếu Giết và ${spareVotes} phiếu Tha.`, "phase");
   room.accusedId = null;
-  killWithChains(room, [accusedId], "bị khu phố treo cổ");
+  killWithChains(room, [accusedId], "bị khu phố treo cổ", true);
   if (room.phase !== "hunter") {
     if (checkWinner(io, room)) return;
     beginNight(io, room);
@@ -233,13 +299,15 @@ function checkWinner(io, room) {
   const living = alive(room);
   const demons = living.filter((p) => ROLE_INFO[p.role]?.team === "demon");
   const villagers = living.filter((p) => ROLE_INFO[p.role]?.team === "village");
-  if (!demons.length) room.winner = "village";
-  else if (demons.length >= villagers.length) room.winner = "demon";
+  const loners = living.filter((p) => ROLE_INFO[p.role]?.team === "loner");
+  if (living.length === 1 && loners.length === 1) room.winner = "loner";
+  else if (!demons.length && !loners.length) room.winner = "village";
+  else if (!loners.length && demons.length >= villagers.length) room.winner = "demon";
   if (!room.winner) return false;
   clearPhaseTimer(room);
   room.status = "ended";
   room.phase = "ended";
-  addLog(room, room.winner === "village" ? pick(WIN_VILLAGE) : pick(WIN_DEMON), "win");
+  addLog(room, room.winner === "village" ? pick(WIN_VILLAGE) : room.winner === "demon" ? pick(WIN_DEMON) : pick(WIN_LONER), "win");
   emitRoom(io, room);
   return true;
 }
@@ -248,14 +316,25 @@ function validateTargets(room, player, action, targets) {
   const valid = Array.isArray(targets) && targets.every((id) => room.players.some((p) => p.id === id && p.alive));
   if (!valid || targets.length !== action.count || new Set(targets).size !== targets.length) return false;
   if (action.exclude?.some((id) => targets.includes(id))) return false;
-  if (action.excludeTeam && targets.some((id) => ROLE_INFO[getPlayer(room, id)?.role]?.team === "demon")) return false;
+  if (action.betrayal) {
+    if (isWolf(getPlayer(room, targets[0])?.role)) return false;
+    if (targets[1] === player.id || !isWolf(getPlayer(room, targets[1])?.role)) return false;
+  } else if (action.betrayalOnly) {
+    if (targets[0] === player.id || !["demon", "junior"].includes(getPlayer(room, targets[0])?.role)) return false;
+  } else if (action.excludeRegularWolf && targets.some((id) => ["demon", "junior"].includes(getPlayer(room, id)?.role))) {
+    return false;
+  } else if (action.excludeWolf && targets.some((id) => isWolf(getPlayer(room, id)?.role))) return false;
   return true;
 }
 
 module.exports = {
-  requiredNightActors,
-  setNightVictimIfReady,
+  actorsForStep,
+  hasRoleForStep,
+  buildNightSteps,
+  fakeStepDuration,
+  chooseWolfVictim,
   checkNightReady,
+  finishNightStep,
   killWithChains,
   resolveNight,
   beginDay,
