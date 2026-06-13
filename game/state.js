@@ -50,6 +50,16 @@ function actionFor(room, me) {
     const canSaveVictim = victim && !(victim.role === "springroll" && (victim.health ?? 2) > 1);
     return { type: "witch", label: "Dùng bùa hoặc bỏ qua", count: 1, allowSkip: true, victimId: canSaveVictim ? room.nightVictim : null };
   }
+  if (step === "priest" && me.role === "priest") {
+    const alreadyInChurch = new Set(room.priestChurch || []);
+    const choices = alive(room).filter((p) => !alreadyInChurch.has(p.id) && p.id !== me.id);
+    return {
+      type: "priest",
+      label: "Thêm người vào Nhà Thờ",
+      count: Math.min(2, choices.length),
+      allowSkip: true
+    };
+  }
   return null;
 }
 
@@ -109,6 +119,7 @@ function publicState(room, socketId) {
       role: me.role,
       health: me.health,
       cupidPair: me.role === "cupid" ? room.cupidPair : [],
+      priestChurch: me.role === "priest" ? room.priestChurch : [],
       description: me.role ? ROLE_INFO[me.role].description : null,
       flavor: me.role ? ROLE_INFO[me.role].flavor : null
     } : null,

@@ -427,7 +427,67 @@ async function run() {
   assert(survivedState.players.find((player) => player.id === accused).alive);
   defenseClients.forEach((client) => client.disconnect());
 
-  console.log("Smoke test passed: room management, phases, timed votes, replay, roles, and win conditions.");
+  const bisexualClients = await createGroup("Bisexual", { demon: 1, seer: 1, witch: 0, guard: 0, villager: 1, hunter: 0, cupid: 0, junior: 0, bisexual: 1, thangngoo: 0, priest: 0 });
+  const bisexualNight = await Promise.all(bisexualClients.map((client) => nextState(client, (state) => state.phase === "night")));
+  const bisexualIndex = bisexualNight.findIndex((state) => state.me.role === "bisexual");
+  const bisexualSeerIndex = bisexualNight.findIndex((state) => state.me.role === "seer");
+  const bisexualDemonIndex = bisexualNight.findIndex((state) => state.me.role === "demon");
+  assert(bisexualIndex >= 0);
+  const bisexualVictimId = bisexualNight[bisexualSeerIndex].players.find((p) => p.id === bisexualNight[bisexualIndex].me.id).id;
+  const bisexualSeerPromise = nextState(bisexualClients[bisexualSeerIndex], (state) => state.seerResult?.viewer === bisexualNight[bisexualSeerIndex].me.id);
+  assert((await emit(bisexualClients[bisexualDemonIndex], "act", { targets: [bisexualVictimId], mode: null })).ok);
+  await nextState(bisexualClients[bisexualSeerIndex], (state) => state.action?.type === "seer");
+  assert((await emit(bisexualClients[bisexualSeerIndex], "act", { targets: [bisexualVictimId], mode: null })).ok);
+  const bisexualSeerState = await bisexualSeerPromise;
+  assert.equal(bisexualSeerState.seerResult.alignment, "bad");
+  const bisexualEndState = Promise.all(bisexualClients.map((client) => nextState(client, (state) => state.phase === "day" || state.phase === "ended")));
+  const bisexualEndStates = await bisexualEndState;
+  const converted = bisexualEndStates[bisexualIndex];
+  assert.equal(converted.me.alive, true);
+  assert.equal(converted.me.role, "demon");
+  bisexualClients.forEach((client) => client.disconnect());
+
+  const foolClients = await createGroup("Fool", { demon: 1, seer: 0, witch: 0, guard: 0, villager: 2, hunter: 0, cupid: 0, junior: 0, bisexual: 0, thangngoo: 1, priest: 0 });
+  const foolNight = await Promise.all(foolClients.map((client) => nextState(client, (state) => state.phase === "night")));
+  const foolDemonIndex = foolNight.findIndex((state) => state.me.role === "demon");
+  const foolIndex = foolNight.findIndex((state) => state.me.role === "thangngoo");
+  assert(foolIndex >= 0);
+  const foolVictim = foolNight[foolDemonIndex].players.find((p) => p.id !== foolNight[foolDemonIndex].me.id && p.id !== foolNight[foolIndex].me.id);
+  const foolDay = Promise.all(foolClients.map((client) => nextState(client, (state) => state.phase === "day")));
+  assert((await emit(foolClients[foolDemonIndex], "act", { targets: [foolVictim.id], mode: null })).ok);
+  const foolDayStates = await foolDay;
+  const foolLiving = foolDayStates.map((state, i) => ({ state, i })).filter(({ state }) => state.me.alive);
+  const targetFool = foolDayStates[foolIndex].me.id;
+  const foolDefense = foolClients.map((client) => nextState(client, (state) => state.phase === "defense"));
+  for (const { i } of foolLiving) assert((await emit(foolClients[i], "act", { targets: [targetFool], mode: null })).ok);
+  await Promise.all(foolDefense);
+  const foolEnded = Promise.all(foolClients.map((client) => nextState(client, (state) => state.phase === "ended")));
+  for (const { i } of foolLiving) {
+    if (foolDayStates[i].me.alive && foolDayStates[i].me.role !== "demon") {
+      try { await emit(foolClients[i], "act", { targets: [], mode: "kill" }); } catch {}
+    }
+  }
+  const foolEndedStates = await foolEnded;
+  assert(foolEndedStates.every((s) => s.winner === "loner"));
+  foolClients.forEach((client) => client.disconnect());
+
+  const priestClients = await createGroup("Priest", { demon: 1, seer: 0, witch: 0, guard: 0, villager: 2, hunter: 0, cupid: 0, junior: 0, bisexual: 0, thangngoo: 0, priest: 1 });
+  const priestNight = await Promise.all(priestClients.map((client) => nextState(client, (state) => state.phase === "night")));
+  const priestIndex = priestNight.findIndex((state) => state.me.role === "priest");
+  const priestDemonIndex = priestNight.findIndex((state) => state.me.role === "demon");
+  assert(priestIndex >= 0);
+  const priestAliveTargets = priestNight[priestIndex].players.filter((p) => p.alive && p.id !== priestNight[priestIndex].me.id);
+  const priestTargetIds = priestAliveTargets.slice(0, 2).map((p) => p.id);
+  await nextState(priestClients[priestIndex], (state) => state.action?.type === "priest");
+  assert((await emit(priestClients[priestIndex], "act", { targets: priestTargetIds, mode: null })).ok);
+  const priestAfterNight = await Promise.all(priestClients.map((client) => nextState(client, (state) => state.phase === "day" || state.phase === "ended")));
+  const priestState = priestAfterNight[priestIndex];
+  assert.equal(priestState.me.priestChurch?.length, 3);
+  const churchNames = priestState.me.priestChurch.map((id) => priestState.players.find((p) => p.id === id)?.name).filter(Boolean);
+  assert.equal(churchNames.length, 3);
+  priestClients.forEach((client) => client.disconnect());
+
+  console.log("Smoke test passed: room management, phases, timed votes, replay, roles, win conditions, and custom roles.");
 }
 
 run()

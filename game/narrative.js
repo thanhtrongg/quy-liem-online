@@ -132,6 +132,24 @@ const GUARD_PROTECT = [
   "Một tiếng la hét vang lên rồi tắt lịm. Gã Béo đã đuổi được kẻ lạ mặt.",
 ];
 
+const BISEXUAL_CONVERT = [
+  "{name} bị Quỷ Liếm cắn, nhưng thay vì chết, một luồng khí đen bao trùm. {name} đã gia nhập đàn Quỷ!",
+  "Nanh Quỷ cắm vào cổ {name}. Đôi mắt mở ra đỏ rực — một con Quỷ mới đã thức tỉnh!",
+  "{name} gục xuống, rồi đứng dậy với nụ cười tà. Ranh giới giữa người và quỷ đã bị phá vỡ.",
+];
+
+const PRIEST_CHURCH = [
+  "{name} đã tìm thấy ánh sáng. Một linh hồn nữa gia nhập Nhà Thờ.",
+  "Tiếng chuông nhà thờ vang lên. {name} bước qua cánh cửa thiêng liêng.",
+  "Cha Sứ thì thầm lời nguyện. {name} quỳ xuống và đón nhận ánh sáng.",
+];
+
+const WIN_FOOL = [
+  "Thằng Ngoo bị treo cổ — nhưng nụ cười vẫn nở trên môi. Kẻ ngốc đã thắng! Tất cả đều rơi vào bẫy.",
+  "Khu phố nghĩ mình đã treo cổ đúng người. Nhưng Thằng Ngoo cười to nhất. Phe Độc Hành chiến thắng!",
+  "Dây thừng siết chặt, nhưng Thằng Ngoo cười. Kết cục này chính là điều hắn mong đợi.",
+];
+
 module.exports = {
   pick,
   NIGHT_BEGIN,
@@ -157,4 +175,7 @@ module.exports = {
   WIN_LONER,
   WITCH_SAVE,
   GUARD_PROTECT,
+  BISEXUAL_CONVERT,
+  PRIEST_CHURCH,
+  WIN_FOOL,
 };

@@ -37,6 +37,7 @@ const nightStepNames = {
   seer: "Cô Bé Hay Đoán thức dậy",
   guard: "Gã Béo Nóng Tính thức dậy",
   witch: "Cậu Bé Chơi Bùa thức dậy",
+  priest: "Cha Sứ thức dậy",
 };
 const teamNames = {
   demon: "Phe Quỷ Liếm",
@@ -788,6 +789,10 @@ function renderIdentity() {
     bits.push(`Số mạng còn lại: ${state.me.health}`);
   if (state.villagePowersDisabled && state.roleInfo[role]?.team === "village")
     bits.push("Lời nguyền Chá Giò đã kích hoạt: phe dân không còn kỹ năng.");
+  if (state.me?.priestChurch?.length)
+    bits.push(`Nhà Thờ (${state.me.priestChurch.length} người): ${
+      state.me.priestChurch.map((id) => state.players.find((p) => p.id === id)?.name).filter(Boolean).join(", ")
+    }`);
   const mates = state.players.filter((p) => p.id !== state.me?.id && p.isWolf);
   if (mates.length)
     bits.push(`Các Quỷ cùng thức dậy: ${mates.map((p) => p.name).join(", ")}`);
@@ -943,6 +948,7 @@ function renderAction() {
 function eligible(action, player) {
   if (!player.alive) return false;
   if (action.exclude?.includes(player.id)) return false;
+  if (action.type === "priest" && state.me?.priestChurch?.includes(player.id)) return false;
   const isWolf =
     player.isWolf ||
     (player.role &&
@@ -1145,6 +1151,8 @@ function RoleParticles() {
     "cupid",
     "guard",
     "seer",
+    "bisexual",
+    "priest",
   ]);
 
   this.init = () => {
@@ -1230,6 +1238,8 @@ function RoleParticles() {
     if (currentRole === "cupid") return Math.ceil(7 * scale);
     if (currentRole === "guard") return Math.ceil(6 * scale);
     if (currentRole === "seer") return Math.ceil(7 * scale);
+    if (currentRole === "bisexual") return Math.ceil(8 * scale);
+    if (currentRole === "priest") return Math.ceil(8 * scale);
     return 0;
   }
 
@@ -1330,6 +1340,24 @@ function RoleParticles() {
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, Math.PI, Math.PI * 1.5);
       ctx.stroke();
+    } else if (currentRole === "bisexual") {
+      const gradient = ctx.createLinearGradient(p.x - p.size, p.y, p.x + p.size, p.y);
+      gradient.addColorStop(0, `rgba(255, 45, 65, ${alpha * 0.5})`);
+      gradient.addColorStop(0.5, `rgba(150, 80, 255, ${alpha * 0.5})`);
+      gradient.addColorStop(1, `rgba(70, 130, 255, ${alpha * 0.5})`);
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (currentRole === "priest") {
+      ctx.fillStyle = `rgba(255, 215, 0, ${alpha * 0.3})`;
+      ctx.beginPath();
+      const s = p.size;
+      ctx.moveTo(p.x, p.y - s);
+      ctx.lineTo(p.x + s * 0.6, p.y + s * 0.4);
+      ctx.lineTo(p.x - s * 0.6, p.y + s * 0.4);
+      ctx.closePath();
+      ctx.fill();
     }
   }
 

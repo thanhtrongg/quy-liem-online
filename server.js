@@ -176,7 +176,11 @@ io.on("connection", (socket) => {
     room.villagePowersDisabled = false;
     room.guardLastTarget = null;
     room.cupidPair = [];
+    room.priestChurch = [];
     room.hunterRevealId = null;
+    room.players.forEach((p) => {
+      if (p.role === "priest") room.priestChurch.push(p.id);
+    });
     room.accusedId = null;
     room.phaseEndsAt = null;
     room.status = "playing";
@@ -233,6 +237,11 @@ io.on("connection", (socket) => {
       }
     } else {
       room.actions[player.id] = { targets, mode: action.betrayalOnly ? "betrayal-only" : mode };
+      if (action.type === "priest") {
+        const already = new Set(room.priestChurch || []);
+        if (targets.some((id) => already.has(id)))
+          return callback?.({ error: "Người này đã ở trong Nhà Thờ." });
+      }
       if (action.type === "cupid") {
         const [a, b] = targets.map((id) => getPlayer(room, id));
         a.loverId = b.id;
@@ -241,10 +250,11 @@ io.on("connection", (socket) => {
       }
       if (action.type === "seer") {
         const target = getPlayer(room, targets[0]);
+        const isEvil = target.role === "bisexual" || ROLE_INFO[target.role].team !== "village";
         room.seerResult = {
           viewer: player.id,
           targetName: target.name,
-          alignment: ROLE_INFO[target.role].team === "village" ? "good" : "bad"
+          alignment: isEvil ? "bad" : "good"
         };
       }
     }
