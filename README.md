@@ -47,31 +47,31 @@ DEBUG_SMOKE=true npm test
 
 ### 🔴 Phe Quỷ Liếm (Demon)
 
-| Vai | Icon | Chức năng |
-| --- | :--: | --- |
-| **Quỷ Liếm** | ⛧ | Mỗi đêm cùng đàn bỏ phiếu chọn nạn nhân. |
-| **Quỷ Liếm Nhí** | ⧩ | Chỉ được săn mồi khi tất cả Quỷ Liếm trưởng thành đã chết. |
+| Vai              | Icon | Chức năng                                                  |
+| ---------------- | :--: | ---------------------------------------------------------- |
+| **Quỷ Liếm**     |  ⛧   | Mỗi đêm cùng đàn bỏ phiếu chọn nạn nhân.                   |
+| **Quỷ Liếm Nhí** |  ⧩   | Chỉ được săn mồi khi tất cả Quỷ Liếm trưởng thành đã chết. |
 
 ### 🔵 Phe Khu Phố (Village)
 
-| Vai | Icon | Chức năng |
-| --- | :--: | --- |
-| **Cô Bé Hay Đoán** | ◈ | Mỗi đêm soi một người, biết phe Tốt hay Xấu. |
-| **Cậu Bé Chơi Bùa** | ⚗ | Một bùa cứu, một bùa hại, mỗi bùa dùng một lần. |
-| **Gã Béo Nóng Tính** | ⛨ | Mỗi đêm bảo kê một người khỏi Quỷ Liếm. |
-| **Lọ Vương** | ☠ | Khi bị Quỷ giết hoặc treo cổ, kéo theo một người. |
-| **Chá Giò** | ☥ | Hai mạng. Mất mạng cuối → toàn phe dân mất kỹ năng. |
-| **Anh Hàng Xóm** | ◇ | Không kỹ năng, thảo luận và biểu quyết. |
+| Vai                  | Icon | Chức năng                                           |
+| -------------------- | :--: | --------------------------------------------------- |
+| **Cô Bé Hay Đoán**   |  ◈   | Mỗi đêm soi một người, biết phe Tốt hay Xấu.        |
+| **Cậu Bé Chơi Bùa**  |  ⚗   | Một bùa cứu, một bùa hại, mỗi bùa dùng một lần.     |
+| **Gã Béo Nóng Tính** |  ⛨   | Mỗi đêm bảo kê một người khỏi Quỷ Liếm.             |
+| **Lọ Vương**         |  ☠   | Khi bị Quỷ giết hoặc treo cổ, kéo theo một người.   |
+| **Chá Giò**          |  ☥   | Hai mạng. Mất mạng cuối → toàn phe dân mất kỹ năng. |
+| **Anh Hàng Xóm**     |  ◇   | Không kỹ năng, thảo luận và biểu quyết.             |
 
 ### 🟣 Phe Độc Hành (Loner)
 
-| Vai | Icon | Chức năng |
-| --- | :--: | --- |
-| **Quỷ Liếm Tinh** | ♱ | Biết đàn Quỷ. Đêm 3, 6, 9... được giết một Quỷ. Thắng khi là người cuối sống sót. |
-| **Người Yêu Cũ** | ♡ | Đêm đầu ghép đôi; một người chết, người kia chết theo. |
-| **Gay Lỏ** | ⚥ | Bị soi ra Xấu. Khi Quỷ cắn → không chết, gia nhập đàn Quỷ. |
-| **Thằng Ngoo** | ☺ | Nếu bị treo cổ → thắng ngay lập tức. |
-| **Cha Sứ** | ☩ | Mỗi đêm thêm 2 người vào Nhà Thờ. Thắng khi toàn bộ người sống trong Nhà Thờ. |
+| Vai               | Icon | Chức năng                                                                         |
+| ----------------- | :--: | --------------------------------------------------------------------------------- |
+| **Quỷ Liếm Tinh** |  ☩   | Biết đàn Quỷ. Đêm 3, 6, 9... được giết một Quỷ. Thắng khi là người cuối sống sót. |
+| **Người Yêu Cũ**  |  ♡   | Đêm đầu ghép đôi; một người chết, người kia chết theo.                            |
+| **Gay Lỏ**        |  ⚥   | Bị soi ra Xấu. Khi Quỷ cắn → không chết, gia nhập đàn Quỷ.                        |
+| **Thằng Ngoo**    |  ☺   | Nếu bị treo cổ → thắng ngay lập tức.                                              |
+| **Cha Sứ**        |  ♱   | Mỗi đêm thêm 2 người vào Nhà Thờ. Thắng khi toàn bộ người sống trong Nhà Thờ.     |
 
 ## Luật chơi
 
@@ -87,6 +87,7 @@ DEBUG_SMOKE=true npm test
 ## Tính năng
 
 ### Gameplay
+
 - Phòng chơi realtime với mã 5 ký tự, hỗ trợ reconnect
 - Host tùy chỉnh đội hình linh hoạt, kick thành viên, replay
 - Voice chat theo kênh (phe Quỷ nói chuyện riêng ban đêm)
@@ -96,6 +97,7 @@ DEBUG_SMOKE=true npm test
 - Hiệu ứng drama 10 giây cuối
 
 ### Giao diện
+
 - Sổ vai tra cứu chức năng từng phe
 - Theme màu theo từng vai (CSS custom properties + body data attribute)
 - Hiệu ứng chuyển phase (cinematic overlay, glitch RGB, static noise)
@@ -110,6 +112,7 @@ DEBUG_SMOKE=true npm test
 - End game role reveal: bảng hiển thị icon + vai + tên + trạng thái
 
 ### Âm thanh
+
 - Nhạc nền kinh dị, âm thanh bỏ phiếu, tiếng rên phản biện
 - Nút bật/tắt âm thanh và nhạc nền riêng
 
@@ -155,12 +158,12 @@ Render tự đọc [`render.yaml`](./render.yaml), cài dependencies và chạy 
 
 ## Scripts
 
-| Lệnh | Công dụng |
-| --- | --- |
-| `npm start` | Chạy server production |
-| `npm run dev` | Chạy server với Node watch mode |
+| Lệnh            | Công dụng                         |
+| --------------- | --------------------------------- |
+| `npm start`     | Chạy server production            |
+| `npm run dev`   | Chạy server với Node watch mode   |
 | `npm run check` | Kiểm tra cú pháp server và client |
-| `npm test` | Chạy smoke test multiplayer |
+| `npm test`      | Chạy smoke test multiplayer       |
 
 ## Công nghệ
 

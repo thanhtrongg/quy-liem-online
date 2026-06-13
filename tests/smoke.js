@@ -439,7 +439,7 @@ async function run() {
   await nextState(bisexualClients[bisexualSeerIndex], (state) => state.action?.type === "seer");
   assert((await emit(bisexualClients[bisexualSeerIndex], "act", { targets: [bisexualVictimId], mode: null })).ok);
   const bisexualSeerState = await bisexualSeerPromise;
-  assert.equal(bisexualSeerState.seerResult.alignment, "bad");
+  assert.equal(bisexualSeerState.seerResult.alignment, "good");
   const bisexualEndState = Promise.all(bisexualClients.map((client) => nextState(client, (state) => state.phase === "day" || state.phase === "ended")));
   const bisexualEndStates = await bisexualEndState;
   const converted = bisexualEndStates[bisexualIndex];

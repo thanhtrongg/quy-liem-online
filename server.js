@@ -250,7 +250,7 @@ io.on("connection", (socket) => {
       }
       if (action.type === "seer") {
         const target = getPlayer(room, targets[0]);
-        const isEvil = target.role === "bisexual" || ROLE_INFO[target.role].team !== "village";
+        const isEvil = ROLE_INFO[target.role].team === "demon";
         room.seerResult = {
           viewer: player.id,
           targetName: target.name,

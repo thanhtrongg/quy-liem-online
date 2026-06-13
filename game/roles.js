@@ -91,7 +91,7 @@ const ROLE_INFO = {
     team: "loner",
     icon: "⚥",
     description:
-      "Phe Độc Hành nhưng bị soi là Xấu. Khi bị Quỷ Liếm cắn sẽ không chết mà gia nhập đàn Quỷ.",
+      "Phe Độc Hành, bị soi là Tốt. Khi Quỷ Liếm cắn sẽ không chết mà gia nhập đàn Quỷ, lúc đó mới bị soi là Xấu.",
     flavor:
       "Một linh hồn đứng giữa ranh giới ánh sáng và bóng tối. Khi tử thần gõ cửa, ngươi sẽ mở cánh cửa cho bóng đêm.",
   },
