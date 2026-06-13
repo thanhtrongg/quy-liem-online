@@ -846,6 +846,7 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   background: linear-gradient(135deg, #342513, #160d08);
   color: #ead7a9;
   font-size: 0.72rem;
+  order: 99;
 }
 .book-toggle::before {
   content: "";
@@ -881,40 +882,21 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   z-index: 60;
   top: 0;
   right: 0;
-  width: min(470px, 94vw);
+  width: min(520px, 96vw);
   height: 100vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #4f1119 #0d0709;
-  padding: 25px 25px 45px 35px;
-  border-left: 8px solid #4f1119;
+  display: flex;
+  flex-direction: column;
   background:
     repeating-linear-gradient(0deg, #0000 0 34px, #5a402216 35px),
     radial-gradient(circle at 20% 10%, #6f4b2738, transparent 33%),
     #170f0b;
+  border-left: 8px solid #4f1119;
   box-shadow: -28px 0 75px #000;
   visibility: hidden;
   opacity: 0;
-  pointer-events: none;
   transform: translateX(105%);
   transition: visibility 0s 0.32s, opacity 0.32s ease, transform 0.32s ease;
-}
-.role-book::-webkit-scrollbar {
-  width: 7px;
-}
-.role-book::-webkit-scrollbar-track {
-  background: #0d0709;
-  border-left: 1px solid #2a0f13;
-}
-.role-book::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #6b1823, #4f1119);
-  border-radius: 0;
-  border-left: 1px solid #8f2833;
-  box-shadow: inset 0 0 6px #8f283355;
-}
-.role-book::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #8f2833, #6b1823);
-  box-shadow: inset 0 0 10px #ef315744;
+  overflow: hidden;
 }
 .role-book.open {
   visibility: visible;
@@ -938,8 +920,9 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   align-items: start;
   justify-content: space-between;
   gap: 15px;
-  padding-bottom: 17px;
-  border-bottom: 1px solid #72512e;
+  padding: 18px 20px 15px 28px;
+  border-bottom: 1px solid #3a2518;
+  flex-shrink: 0;
 }
 .book-heading h2 {
   margin: 8px 0 0;
@@ -955,83 +938,210 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   color: #d4bd91;
   font-size: 0.7rem;
 }
-.book-note {
-  color: #ab9470;
-  font-size: 0.76rem;
-  line-height: 1.6;
+
+/* ─── Book body ─── */
+.book-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px 10px 28px;
+  perspective: 1400px;
+  min-height: 0;
 }
-.book-team {
-  margin-top: 25px;
+.book-flipper {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 460px;
+  height: 100%;
+  max-height: 380px;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s;
 }
-.book-team h3 {
-  margin: 0 0 10px;
-  color: #e6d3ab;
-  font-size: 0.75rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+.book-flipper.flip-next {
+  transform: perspective(1200px) rotateY(-10deg) scale(0.95);
+  opacity: 0;
 }
-.book-team.demon h3 {
-  color: #f05263;
+.book-flipper.flip-prev {
+  transform: perspective(1200px) rotateY(10deg) scale(0.95);
+  opacity: 0;
 }
-.book-team.loner h3 {
-  color: #b891ff;
+
+/* ─── Left page ─── */
+.book-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px 18px;
+  background: radial-gradient(ellipse at 50% 0%, #2a1d12, transparent 70%), #1a110a;
+  border: 1px solid #5a3a28;
+  border-radius: 4px 12px 12px 4px;
+  border-right: 2px solid #3a2518;
+  box-shadow: inset 0 0 40px #0005, 2px 0 15px #0006;
+  overflow: hidden;
 }
-.book-role {
-  display: grid;
-  grid-template-columns: 38px 1fr;
-  gap: 12px;
-  padding: 13px 0;
-  border-bottom: 1px dashed #65482766;
+.book-left::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid #5a3a2844;
+  border-radius: 2px;
+  pointer-events: none;
 }
-.book-mark {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid #846239;
-  border-radius: 50% 45% 55% 48%;
-  color: #d7bd86;
+.book-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid #7a5a38;
+  border-radius: 50% 42% 58% 46%;
+  margin-bottom: 10px;
+  background: #0f0804;
+  box-shadow: 0 0 20px #7a5a3844;
+  position: relative;
+  z-index: 1;
+}
+.book-icon {
   font-family: "YouMurderer", cursive;
   font-size: 1.8rem;
-  transform: rotate(-7deg);
+  color: #d7bd86;
+  line-height: 1;
 }
-.book-team.demon .book-mark {
-  border-color: #8f2833;
-  color: #ff5266;
-  background: #350a10;
+.book-team-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  align-self: flex-start;
+  background: #2a1a0a;
+  border: 1px solid #5a3a28;
+  color: #b89a6a;
+  position: relative;
+  z-index: 1;
 }
-.book-team.loner .book-mark {
-  border-color: #69429a;
-  color: #d6b4ff;
-  background: #1c0c31;
+.book-left[data-team="demon"] .book-team-badge {
+  border-color: #8f2833; color: #ff5266; background: #350a10;
 }
-.book-role strong {
+.book-left[data-team="demon"] { border-color: #6a2028; }
+.book-left[data-team="demon"] .book-icon-wrap {
+  border-color: #8f2833; box-shadow: 0 0 20px #8f283344;
+}
+.book-left[data-team="demon"] .book-icon { color: #ff5266; }
+.book-left[data-team="loner"] .book-team-badge {
+  border-color: #69429a; color: #d6b4ff; background: #1c0c31;
+}
+.book-left[data-team="loner"] { border-color: #4a2a6a; }
+.book-left[data-team="loner"] .book-icon-wrap {
+  border-color: #69429a; box-shadow: 0 0 20px #69429a44;
+}
+.book-left[data-team="loner"] .book-icon { color: #d6b4ff; }
+.book-role-name {
+  margin: 0 0 8px;
   color: #e9d9b9;
-  font-size: 0.86rem;
+  font-size: 1rem;
+  line-height: 1.2;
+  position: relative;
+  z-index: 1;
 }
-.book-role p {
-  margin: 5px 0 0;
+.book-desc {
+  margin: 0;
   color: #ab9878;
   font-size: 0.74rem;
   line-height: 1.55;
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #5a3a2844 transparent;
+  position: relative;
+  z-index: 1;
 }
-.book-flavor {
-  display: block;
-  margin-top: 6px;
+.book-desc::-webkit-scrollbar { width: 3px; }
+.book-desc::-webkit-scrollbar-thumb { background: #5a3a2855; border-radius: 3px; }
+
+/* ─── Right page (card image) ─── */
+.book-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 50%, #1a0f06, #0d0804);
+  border: 1px solid #4a2a1a;
+  border-radius: 12px 4px 4px 12px;
+  border-left: 2px solid #3a2010;
+  box-shadow: inset 0 0 40px #0005, -2px 0 15px #0006;
+  padding: 12px;
+}
+#book-role-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  filter: drop-shadow(0 0 15px #0008);
+}
+
+/* ─── Book footer (navigation) ─── */
+.book-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 20px 20px 28px;
+  border-top: 1px solid #3a2518;
+  background: #0f0804cc;
+  flex-shrink: 0;
+}
+.book-nav-btn {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #5a3a28;
+  border-radius: 50%;
+  background: #1a110a;
   color: #d7bd86;
-  font-style: italic;
-  font-size: 0.7rem;
-  line-height: 1.45;
-  border-left: 2px solid #84623955;
-  padding-left: 8px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  line-height: 1;
 }
-.book-team.demon .book-flavor {
-  color: #ff7a8a;
-  border-left-color: #8f283355;
+.book-nav-btn:hover {
+  background: #2a1a0a;
+  border-color: #8a6a48;
+  transform: scale(1.1);
 }
-.book-team.loner .book-flavor {
-  color: #caa6f7;
-  border-left-color: #71469a66;
+.book-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+  transform: none;
+}
+.book-page-label {
+  color: #8a7a6a;
+  font-size: 0.72rem;
+  min-width: 36px;
+  text-align: center;
+}
+.book-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.book-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3a2a1a;
+  transition: background 0.3s, transform 0.3s;
+}
+.book-dot.active {
+  background: #b89a6a;
+  transform: scale(1.4);
+  box-shadow: 0 0 6px #b89a6a66;
 }
 .phase-clock {
   min-width: 76px;

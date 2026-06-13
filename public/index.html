@@ -139,10 +139,28 @@
             </div>
             <button id="role-book-close" aria-label="Đóng sổ vai">Đóng</button>
           </div>
-          <p class="book-note">
-            Tra cứu chức năng các vai. Sổ không tiết lộ vai của người chơi.
-          </p>
-          <div id="role-book-list" class="role-book-list"></div>
+          <div class="book-body">
+            <div class="book-flipper" id="book-flipper">
+              <div class="book-left">
+                <div class="book-icon-wrap" id="book-role-icon-wrap">
+                  <span id="book-role-icon" class="book-icon"></span>
+                </div>
+                <span class="book-team-badge" id="book-role-team"></span>
+                <h3 id="book-role-name" class="book-role-name"></h3>
+                <p id="book-role-desc" class="book-desc"></p>
+                <em id="book-role-flavor" class="book-flavor"></em>
+              </div>
+              <div class="book-right">
+                <img id="book-role-image" src="" alt="" />
+              </div>
+            </div>
+          </div>
+          <div class="book-footer">
+            <button id="book-prev" class="book-nav-btn" aria-label="Trang trước">‹</button>
+            <div class="book-dots" id="book-dots"></div>
+            <span class="book-page-label" id="book-page-label">1/13</span>
+            <button id="book-next" class="book-nav-btn" aria-label="Trang sau">›</button>
+          </div>
         </aside>
         <div id="toast-container" class="toast-container" aria-live="polite"></div>
     <div id="book-backdrop" class="book-backdrop"></div>

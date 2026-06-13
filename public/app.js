@@ -334,6 +334,10 @@ $("role-book-close").onclick = () => toggleRoleBook(false);
 $("book-backdrop").onclick = () => toggleRoleBook(false);
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && roleBookOpen) toggleRoleBook(false);
+  if (roleBookOpen) {
+    if (event.key === "ArrowLeft") { $("book-prev").onclick(); event.preventDefault(); }
+    if (event.key === "ArrowRight") { $("book-next").onclick(); event.preventDefault(); }
+  }
 });
 
 function toggleRoleBook(force) {
@@ -429,31 +433,71 @@ function render() {
 }
 
 function renderRoleBook() {
-  const labels = {
-    demon: "Phe Quỷ Liếm",
-    village: "Phe khu phố",
-    loner: "Phe Độc Hành",
-  };
-  $("role-book-list").innerHTML = ["demon", "village", "loner"]
-    .map((team) => {
-      const roles = Object.entries(state.roleInfo).filter(
-        ([, info]) => info.team === team,
-      );
-      return `<section class="book-team ${team}">
-      <h3>${labels[team]}</h3>
-      ${roles
-        .map(
-          ([key, info]) => `<article class="book-role">
-        <span class="book-mark">${info.icon || "•"}</span>
-        <div><strong>${escapeHtml(info.name)}</strong><p>${escapeHtml(info.description)}</p>
-        ${info.flavor ? `<em class="book-flavor">${escapeHtml(info.flavor)}</em>` : ""}</div>
-      </article>`,
-        )
-        .join("")}
-    </section>`;
-    })
+  const teams = ["demon", "village", "loner"];
+  const teamLabels = { demon: "Phe Quỷ Liếm", village: "Phe Khu Phố", loner: "Phe Độc Hành" };
+  const allRoles = [];
+  teams.forEach((team) => {
+    Object.entries(state.roleInfo).forEach(([key, info]) => {
+      if (info.team === team) allRoles.push({ key, ...info, team });
+    });
+  });
+  const currentIdx = bookPage % allRoles.length;
+  const role = allRoles[currentIdx];
+  if (!role) return;
+
+  const $icon = $("book-role-icon");
+  const $team = $("book-role-team");
+  const $name = $("book-role-name");
+  const $desc = $("book-role-desc");
+  const $flavor = $("book-role-flavor");
+  const $img = $("book-role-image");
+  const $left = $("book-role-icon-wrap").parentElement;
+
+  $icon.textContent = role.icon || "•";
+  $team.textContent = teamLabels[role.team] || role.team;
+  $name.textContent = role.name;
+  $desc.textContent = role.description;
+  $flavor.textContent = role.flavor ? `"${role.flavor}"` : "";
+  $left.dataset.team = role.team;
+
+  const filename = ROLE_CARD_IMAGES[role.key];
+  $img.src = filename ? `/images/${filename}.png` : "";
+  $img.alt = role.name;
+
+  // Dots
+  $("book-dots").innerHTML = allRoles
+    .map((_, i) => `<span class="book-dot${i === currentIdx ? " active" : ""}"></span>`)
     .join("");
+  $("book-page-label").textContent = `${currentIdx + 1}/${allRoles.length}`;
+  $("book-prev").disabled = allRoles.length <= 1;
+  $("book-next").disabled = allRoles.length <= 1;
 }
+
+let bookPage = 0;
+$("book-prev").onclick = () => {
+  if ($("book-flipper").classList.contains("flip-next") || $("book-flipper").classList.contains("flip-prev")) return;
+  const total = Object.keys(state.roleInfo).length;
+  const prev = (bookPage - 1 + total) % total;
+  bookPage = prev;
+  const flipper = $("book-flipper");
+  flipper.classList.add("flip-prev");
+  setTimeout(() => {
+    renderRoleBook();
+    flipper.classList.remove("flip-prev");
+  }, 450);
+};
+$("book-next").onclick = () => {
+  if ($("book-flipper").classList.contains("flip-next") || $("book-flipper").classList.contains("flip-prev")) return;
+  const total = Object.keys(state.roleInfo).length;
+  const next = (bookPage + 1) % total;
+  bookPage = next;
+  const flipper = $("book-flipper");
+  flipper.classList.add("flip-next");
+  setTimeout(() => {
+    renderRoleBook();
+    flipper.classList.remove("flip-next");
+  }, 450);
+};
 
 function renderEndPanel() {
   const panel = $("end-panel");
