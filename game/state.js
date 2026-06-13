@@ -6,7 +6,7 @@ function actionFor(room, me) {
   if (room.phase === "hunter" && room.pendingHunter === me.id) return { type: "hunter", label: "Chọn người kéo xuống mồ", count: 1 };
   if (!me.alive) return null;
   if (room.phase === "day") return { type: "vote", label: "Bỏ phiếu treo cổ", count: 1, allowSkip: true, currentTarget: room.votes[me.id] ?? null };
-  if (room.phase === "defense" && room.votes[me.id] === room.accusedId) return { type: "withdraw", label: "Rút phiếu buộc tội", count: 0 };
+  if (room.phase === "defense") return { type: "verdict", label: "Phán quyết", count: 0, currentVerdict: room.verdicts?.[me.id] || null };
   if (room.phase !== "night" || room.actions[me.id]) return null;
   if (me.role === "cupid" && room.day === 1) return { type: "cupid", label: "Ghép đôi hai người", count: 2 };
   if (me.role === "guard") return { type: "guard", label: "Chọn người bảo kê", count: 1, exclude: room.guardLast ? [room.guardLast] : [] };
@@ -25,7 +25,7 @@ function publicState(room, socketId) {
     ? room.players.filter((p) => p.id !== me.id && p.role && ROLE_INFO[p.role]?.team === "demon").map((p) => p.id)
     : [];
   const seerResult = room.seerResult?.viewer === socketId ? room.seerResult : null;
-  const publicBallots = ["day", "defense"].includes(room.phase) ? room.votes : {};
+  const publicBallots = room.phase === "day" ? room.votes : {};
   const votesByTarget = {};
   const blankVoters = [];
   Object.entries(publicBallots).forEach(([voterId, targetId]) => {
@@ -64,6 +64,11 @@ function publicState(room, socketId) {
     } : null,
     votesByTarget,
     blankVoters,
+    verdicts: {
+      kill: Object.values(room.verdicts || {}).filter((verdict) => verdict === "kill").length,
+      spare: Object.values(room.verdicts || {}).filter((verdict) => verdict === "spare").length,
+      voted: Object.keys(room.verdicts || {}).length
+    },
     action: actionFor(room, me),
     seerResult,
     logs: room.logs.slice(-30),

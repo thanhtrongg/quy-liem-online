@@ -204,10 +204,13 @@ async function run() {
   const defensePhase = nextState(defenseClients[defenseLiving[0].index], (state) => state.phase === "defense");
   const allVotesStartedAt = Date.now();
   for (const { index } of defenseLiving) assert((await emit(defenseClients[index], "act", { targets: [accused], mode: null })).ok);
-  await defensePhase;
+  const defenseState = await defensePhase;
   assert(Date.now() - allVotesStartedAt < 700);
+  assert.equal(defenseState.action.type, "verdict");
   const survivedToNight = nextState(defenseClients[defenseLiving[0].index], (state) => state.phase === "night" && state.day === 2);
-  for (const { index } of defenseLiving) assert((await emit(defenseClients[index], "act", { targets: [], mode: "withdraw" })).ok);
+  for (const [{ index }, verdict] of defenseLiving.map((entry, index) => [entry, index === 0 ? "kill" : "spare"])) {
+    assert((await emit(defenseClients[index], "act", { targets: [], mode: verdict })).ok);
+  }
   const survivedState = await survivedToNight;
   assert(survivedState.players.find((player) => player.id === accused).alive);
   defenseClients.forEach((client) => client.disconnect());

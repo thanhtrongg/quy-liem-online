@@ -11,7 +11,7 @@ const {
   validateTargets, killWithChains, checkWinner, beginDay, beginNight,
   startDayVote, finishDayVote, finishDefense, checkNightReady
 } = require("./game/engine");
-const { pick, VOTE_WITHDRAW } = require("./game/narrative");
+const { pick } = require("./game/narrative");
 
 function fmt(text, vars) {
   return text.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "???");
@@ -175,9 +175,9 @@ io.on("connection", (socket) => {
     const player = room && getPlayer(room, socket.data.playerId);
     const action = room && actionFor(room, player);
     if (!room || !player || !action) return callback?.({ error: "Hiện tại bạn không thể thực hiện hành động này." });
-    if (action.type === "withdraw") {
-      room.votes[player.id] = null;
-      addLog(room, fmt(pick(VOTE_WITHDRAW), { name: player.name }), "phase");
+    if (action.type === "verdict") {
+      if (!["kill", "spare"].includes(mode)) return callback?.({ error: "Hãy chọn Giết hoặc Tha." });
+      room.verdicts[player.id] = mode;
     } else if (action.allowSkip && mode === "skip") {
       if (action.type === "vote") room.votes[player.id] = null;
       else room.actions[player.id] = { targets: [], mode: "skip" };
@@ -220,7 +220,7 @@ io.on("connection", (socket) => {
     }
     callback?.({ ok: true });
     if (room.phase === "day" && Object.keys(room.votes).length >= alive(room).length) finishDayVote(io, room);
-    else if (room.phase === "defense" && !Object.values(room.votes).some((target) => target === room.accusedId)) finishDefense(io, room);
+    else if (room.phase === "defense" && Object.keys(room.verdicts).length >= alive(room).length) finishDefense(io, room);
     else if (room.phase === "night") checkNightReady(io, room);
     emitRoom(io, room);
   });

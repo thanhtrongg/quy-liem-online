@@ -657,6 +657,38 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   border-color: var(--red);
   background: #341622;
 }
+.witch-actions [data-verdict] {
+  min-height: 54px;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+}
+.witch-actions [data-verdict] strong {
+  display: inline-grid;
+  min-width: 24px;
+  height: 24px;
+  margin-left: 6px;
+  place-items: center;
+  border-radius: 50%;
+  background: #0007;
+}
+.witch-actions .verdict-kill {
+  border-color: #8d1c28;
+  background: linear-gradient(135deg, #591018, #23080c);
+  color: #ffd9dc;
+}
+.witch-actions .verdict-spare {
+  border-color: #657052;
+  background: linear-gradient(135deg, #303a28, #11170e);
+  color: #e8f0dc;
+}
+.witch-actions .verdict-kill.active {
+  border-color: #ff3348;
+  box-shadow: 0 0 24px #ff203b77;
+}
+.witch-actions .verdict-spare.active {
+  border-color: #b8d486;
+  box-shadow: 0 0 24px #9fca6870;
+}
 @media (max-width: 760px) {
   body {
     background-position: 36% center;

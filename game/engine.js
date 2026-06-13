@@ -4,7 +4,7 @@ const { emitRoom, actionFor } = require("./state");
 const { schedulePhase, clearPhaseTimer } = require("./room");
 const { pick,
   NIGHT_BEGIN, NIGHT_END, DAY_BEGIN, DEFENSE_BEGIN,
-  VOTE_TIE, VOTE_BLANK, VOTE_ACQUITTED,
+  VOTE_TIE, VOTE_BLANK,
   DEATH_DEMON, DEATH_HANG, DEATH_WITCH, DEATH_HUNTER, DEATH_LOVER,
   NIGHT_PEACEFUL, NIGHT_UNREST,
   WIN_VILLAGE, WIN_DEMON,
@@ -150,6 +150,7 @@ function beginDay(io, room, waitForHunter = false) {
 function startDayVote(io, room) {
   room.phase = "day";
   room.votes = {};
+  room.verdicts = {};
   room.actions = {};
   room.accusedId = null;
   addLog(room, pick(DAY_BEGIN), "phase");
@@ -164,6 +165,7 @@ function beginNight(io, room) {
   room.phase = "night";
   room.actions = {};
   room.votes = {};
+  room.verdicts = {};
   room.nightVictim = null;
   room.nightVictimReady = false;
   room.accusedId = null;
@@ -193,8 +195,9 @@ function finishDayVote(io, room) {
   }
   room.accusedId = top[0];
   room.phase = "defense";
+  room.verdicts = {};
   const accused = getPlayer(room, room.accusedId).name;
-  addLog(room, `${accused} có 30 giây phản biện. Những người đã buộc tội có thể rút phiếu.`, "phase");
+  addLog(room, `${accused} có 30 giây phản biện. Mọi người hãy phán quyết Giết hoặc Tha.`, "phase");
   addLog(room, pick(DEFENSE_BEGIN), "phase");
   schedulePhase(room, Number(process.env.DEFENSE_DURATION_MS) || 30000, () => finishDefense(io, room));
   emitRoom(io, room);
@@ -203,16 +206,20 @@ function finishDayVote(io, room) {
 function finishDefense(io, room) {
   if (room.phase !== "defense") return;
   clearPhaseTimer(room);
-  const remaining = Object.values(room.votes).filter((target) => target === room.accusedId).length;
-  if (!remaining) {
+  const verdicts = Object.values(room.verdicts || {});
+  const killVotes = verdicts.filter((verdict) => verdict === "kill").length;
+  const spareVotes = verdicts.filter((verdict) => verdict === "spare").length;
+  if (spareVotes > killVotes) {
     const name = getPlayer(room, room.accusedId)?.name;
-    addLog(room, fmt(pick(VOTE_ACQUITTED), { name }), "phase");
+    addLog(room, `${name} được tha với ${spareVotes} phiếu Tha và ${killVotes} phiếu Giết.`, "phase");
     room.accusedId = null;
     beginNight(io, room);
     emitRoom(io, room);
     return;
   }
   const accusedId = room.accusedId;
+  const name = getPlayer(room, accusedId)?.name;
+  addLog(room, `${name} bị kết án với ${killVotes} phiếu Giết và ${spareVotes} phiếu Tha.`, "phase");
   room.accusedId = null;
   killWithChains(room, [accusedId], "bị khu phố treo cổ");
   if (room.phase !== "hunter") {

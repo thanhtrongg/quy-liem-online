@@ -214,7 +214,7 @@ function render() {
     banner.textContent = `${state.hunterRevealName} chính là Lọ Vương. Anh ta đang chọn một người chết chung.`;
     banner.classList.remove("hidden");
   } else if (state.phase === "defense" && state.accusedName) {
-    banner.textContent = `${state.accusedName} đang phản biện. Những người đã buộc tội có thể rút phiếu.`;
+    banner.textContent = `${state.accusedName} đang phản biện. Hãy chọn Giết hoặc Tha. Tha phải nhiều hơn Giết để người này sống.`;
     banner.classList.remove("hidden");
   } else banner.classList.add("hidden");
   renderClock();
@@ -691,13 +691,16 @@ function renderAction() {
     $("action-help").textContent = "Hãy quan sát khu phố đi đến kết cục.";
     return;
   }
-  if (action?.type === "withdraw") {
-    $("action-title").textContent = action.label;
+  if (action?.type === "verdict") {
+    $("action-title").textContent = `${state.accusedName} đang chờ phán quyết`;
     $("action-help").textContent =
-      "Rút phiếu để người đang phản biện có cơ hội sống.";
-    $("submit-action").textContent = "Rút phiếu";
-    $("submit-action").classList.remove("hidden");
-    $("submit-action").onclick = () => submit("withdraw");
+      `Giết ${state.verdicts.kill} · Tha ${state.verdicts.spare}. Chỉ sống khi phiếu Tha nhiều hơn phiếu Giết.`;
+    $("witch-actions").innerHTML = `
+      <button data-verdict="kill" class="verdict-kill ${action.currentVerdict === "kill" ? "active" : ""}">Giết <strong>${state.verdicts.kill}</strong></button>
+      <button data-verdict="spare" class="verdict-spare ${action.currentVerdict === "spare" ? "active" : ""}">Tha <strong>${state.verdicts.spare}</strong></button>`;
+    document.querySelectorAll("[data-verdict]").forEach((button) => {
+      button.onclick = () => submit(button.dataset.verdict);
+    });
     return;
   }
   if (!action) {
@@ -708,8 +711,8 @@ function renderAction() {
           : `${state.accusedName} đang phản biện`;
       $("action-help").textContent =
         state.me.id === state.accusedId
-          ? "Bạn có 30 giây để thuyết phục khu phố rút phiếu."
-          : "Bạn không bỏ phiếu cho người này nên không cần rút phiếu.";
+          ? "Bạn có 30 giây để thuyết phục khu phố chọn Tha."
+          : "Hãy chờ những người còn sống đưa ra phán quyết.";
     } else if (state.phase === "hunter") {
       $("action-title").textContent = `${state.hunterRevealName} là Lọ Vương`;
       $("action-help").textContent = "Hãy chờ Lọ Vương chọn người chết chung.";
@@ -806,8 +809,8 @@ function submit(mode) {
     if (res.error) showError("action-error", res.error);
     else {
       showToast("Đã gửi hành động", "success");
-      if (state.action?.type === "withdraw")
-        showToast("Đã rút phiếu", "success");
+      if (state.action?.type === "verdict")
+        showToast(mode === "spare" ? "Đã chọn Tha" : "Đã chọn Giết", "success");
       if (state.action?.type === "vote") {
         playVoteSound();
         const targetId = selected[0];
@@ -821,7 +824,7 @@ function submit(mode) {
         }
       }
       const identity = $("identity");
-      if (identity && state.action?.type !== "vote" && state.action?.type !== "withdraw") {
+      if (identity && state.action?.type !== "vote" && state.action?.type !== "verdict") {
         identity.classList.remove("action-flash");
         void identity.offsetWidth;
         identity.classList.add("action-flash");

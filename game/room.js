@@ -37,6 +37,7 @@ function createRoom(hostSocket, name) {
     players: [{ id: playerId, socketId: hostSocket.id, token, name, alive: true, role: null, loverId: null, connected: true }],
     actions: {},
     votes: {},
+    verdicts: {},
     logs: [],
     witch: { save: true, poison: true },
     guardLast: null,
@@ -67,6 +68,7 @@ function resetRoomToLobby(room) {
   room.day = 0;
   room.actions = {};
   room.votes = {};
+  room.verdicts = {};
   room.logs = [];
   room.witch = { save: true, poison: true };
   room.guardLast = null;
