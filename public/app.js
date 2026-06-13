@@ -339,7 +339,6 @@ document.addEventListener("keydown", (event) => {
 function toggleRoleBook(force) {
   roleBookOpen = typeof force === "boolean" ? force : !roleBookOpen;
   $("role-book").classList.toggle("open", roleBookOpen);
-  $("book-backdrop").classList.toggle("open", roleBookOpen);
   $("role-book").setAttribute("aria-hidden", String(!roleBookOpen));
   $("role-book-toggle").setAttribute("aria-expanded", String(roleBookOpen));
 }
@@ -367,6 +366,8 @@ socket.on("state", (next) => {
   if (next.status === "lobby") {
     roleCardRevealed = false;
     $("mini-card").classList.add("hidden");
+    bookFilter = "all";
+    $("book-filter")?.querySelectorAll(".filter-btn").forEach((b) => b.classList.toggle("active", b.dataset.filter === "all"));
   }
 });
 socket.on("connect", () => {
@@ -430,6 +431,7 @@ function render() {
 }
 
 function renderRoleBook() {
+  if (!state?.roleInfo) return;
   const teams = ["demon", "village", "loner"];
   const teamLabels = { demon: "Phe Quỷ Liếm", village: "Phe Khu Phố", loner: "Phe Độc Hành" };
   const filter = bookFilter;
