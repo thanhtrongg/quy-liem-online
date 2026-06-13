@@ -65,13 +65,13 @@ DEBUG_SMOKE=true npm test
 
 ### 🟣 Phe Độc Hành (Loner)
 
-| Vai               | Icon | Chức năng                                                                         |
-| ----------------- | :--: | --------------------------------------------------------------------------------- |
-| **Quỷ Liếm Tinh** |  ☩   | Biết đàn Quỷ. Đêm 3, 6, 9... được giết một Quỷ. Thắng khi là người cuối sống sót. |
-| **Người Yêu Cũ**  |  ♡   | Đêm đầu ghép đôi; một người chết, người kia chết theo.                            |
-| **Gay Lỏ**        |  ⚥   | Bị soi ra Xấu. Khi Quỷ cắn → không chết, gia nhập đàn Quỷ.                        |
-| **Thằng Ngoo**    |  ☺   | Nếu bị treo cổ → thắng ngay lập tức.                                              |
-| **Cha Sứ**        |  ♱   | Mỗi đêm thêm 2 người vào Nhà Thờ. Thắng khi toàn bộ người sống trong Nhà Thờ.     |
+| Vai               | Icon | Chức năng                                                                           |
+| ----------------- | :--: | ----------------------------------------------------------------------------------- |
+| **Quỷ Liếm Tinh** |  ☩   | Biết đàn Quỷ. Đêm 3, 6, 9... được giết một Quỷ. Thắng khi là người cuối sống sót.   |
+| **Người Yêu Cũ**  |  ♡   | Đêm đầu ghép đôi; một người chết, người kia chết theo.                              |
+| **Gay Lỏ**        |  ⚥   | Ban đầu soi ra là Tốt. Khi Quỷ cắn → không chết, gia nhập đàn Quỷ và bị soi là Xấu. |
+| **Thằng Ngoo**    |  ☺   | Nếu bị treo cổ → thắng ngay lập tức.                                                |
+| **Cha Sứ**        |  ♱   | Mỗi đêm thêm 2 người vào Nhà Thờ. Thắng khi toàn bộ người sống trong Nhà Thờ.       |
 
 ## Luật chơi
 
