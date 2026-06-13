@@ -334,10 +334,6 @@ $("role-book-close").onclick = () => toggleRoleBook(false);
 $("book-backdrop").onclick = () => toggleRoleBook(false);
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && roleBookOpen) toggleRoleBook(false);
-  if (roleBookOpen) {
-    if (event.key === "ArrowLeft") { $("book-prev").onclick(); event.preventDefault(); }
-    if (event.key === "ArrowRight") { $("book-next").onclick(); event.preventDefault(); }
-  }
 });
 
 function toggleRoleBook(force) {
@@ -435,68 +431,43 @@ function render() {
 function renderRoleBook() {
   const teams = ["demon", "village", "loner"];
   const teamLabels = { demon: "Phe Quỷ Liếm", village: "Phe Khu Phố", loner: "Phe Độc Hành" };
+  const filter = bookFilter;
   const allRoles = [];
   teams.forEach((team) => {
     Object.entries(state.roleInfo).forEach(([key, info]) => {
       if (info.team === team) allRoles.push({ key, ...info, team });
     });
   });
-  const currentIdx = bookPage % allRoles.length;
-  const role = allRoles[currentIdx];
-  if (!role) return;
-
-  const $icon = $("book-role-icon");
-  const $team = $("book-role-team");
-  const $name = $("book-role-name");
-  const $desc = $("book-role-desc");
-  const $flavor = $("book-role-flavor");
-  const $img = $("book-role-image");
-  const $left = $("book-role-icon-wrap").parentElement;
-
-  $icon.textContent = role.icon || "•";
-  $team.textContent = teamLabels[role.team] || role.team;
-  $name.textContent = role.name;
-  $desc.textContent = role.description;
-  $flavor.textContent = role.flavor ? `"${role.flavor}"` : "";
-  $left.dataset.team = role.team;
-
-  const filename = ROLE_CARD_IMAGES[role.key];
-  $img.src = filename ? `/images/${filename}.png` : "";
-  $img.alt = role.name;
-
-  // Dots
-  $("book-dots").innerHTML = allRoles
-    .map((_, i) => `<span class="book-dot${i === currentIdx ? " active" : ""}"></span>`)
-    .join("");
-  $("book-page-label").textContent = `${currentIdx + 1}/${allRoles.length}`;
-  $("book-prev").disabled = allRoles.length <= 1;
-  $("book-next").disabled = allRoles.length <= 1;
+  const filtered = filter === "all" ? allRoles : allRoles.filter((r) => r.team === filter);
+  const html = filtered.length
+    ? filtered.map((role) => {
+        const tagClass = `tag-${role.team}`;
+        const filename = ROLE_CARD_IMAGES[role.key];
+        const cardImg = filename ? `<img src="/images/${filename}.png" alt="" class="book-entry-thumb">` : "";
+        return `<article class="book-entry" data-team="${role.team}">
+          <span class="book-entry-icon">${role.icon || "•"}</span>
+          <div class="book-entry-body">
+            <div class="book-entry-name">
+              ${role.name}
+              <span class="book-entry-tag ${tagClass}">${teamLabels[role.team] || role.team}</span>
+            </div>
+            <p class="book-entry-desc">${escapeHtml(role.description)}</p>
+            ${role.flavor ? `<em class="book-entry-flavor">"${escapeHtml(role.flavor)}"</em>` : ""}
+          </div>
+          ${cardImg ? `<div class="book-entry-card">${cardImg}</div>` : ""}
+        </article>`;
+      }).join("")
+    : `<p class="book-empty">Không có vai trò nào.</p>`;
+  $("book-pages").innerHTML = html;
 }
 
-let bookPage = 0;
-$("book-prev").onclick = () => {
-  if ($("book-flipper").classList.contains("flip-next") || $("book-flipper").classList.contains("flip-prev")) return;
-  const total = Object.keys(state.roleInfo).length;
-  const prev = (bookPage - 1 + total) % total;
-  bookPage = prev;
-  const flipper = $("book-flipper");
-  flipper.classList.add("flip-prev");
-  setTimeout(() => {
-    renderRoleBook();
-    flipper.classList.remove("flip-prev");
-  }, 450);
-};
-$("book-next").onclick = () => {
-  if ($("book-flipper").classList.contains("flip-next") || $("book-flipper").classList.contains("flip-prev")) return;
-  const total = Object.keys(state.roleInfo).length;
-  const next = (bookPage + 1) % total;
-  bookPage = next;
-  const flipper = $("book-flipper");
-  flipper.classList.add("flip-next");
-  setTimeout(() => {
-    renderRoleBook();
-    flipper.classList.remove("flip-next");
-  }, 450);
+let bookFilter = "all";
+$("book-filter").onclick = (e) => {
+  const btn = e.target.closest(".filter-btn");
+  if (!btn) return;
+  bookFilter = btn.dataset.filter;
+  $("book-filter").querySelectorAll(".filter-btn").forEach((b) => b.classList.toggle("active", b === btn));
+  renderRoleBook();
 };
 
 function renderEndPanel() {

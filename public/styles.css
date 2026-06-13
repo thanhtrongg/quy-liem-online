@@ -877,271 +877,290 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   visibility: visible;
   opacity: 1;
 }
+/* ─── Role Book (centered book modal) ─── */
 .role-book {
   position: fixed;
+  inset: 0;
   z-index: 60;
-  top: 0;
-  right: 0;
-  width: min(520px, 96vw);
-  height: 100vh;
   display: flex;
-  flex-direction: column;
-  background:
-    repeating-linear-gradient(0deg, #0000 0 34px, #5a402216 35px),
-    radial-gradient(circle at 20% 10%, #6f4b2738, transparent 33%),
-    #170f0b;
-  border-left: 8px solid #4f1119;
-  box-shadow: -28px 0 75px #000;
+  align-items: center;
+  justify-content: center;
   visibility: hidden;
   opacity: 0;
-  transform: translateX(105%);
-  transition: visibility 0s 0.32s, opacity 0.32s ease, transform 0.32s ease;
-  overflow: hidden;
+  transition: visibility 0s 0.35s, opacity 0.35s ease;
+  pointer-events: none;
+  background: radial-gradient(circle, #020106f0, #000000fa 80%);
 }
 .role-book.open {
   visibility: visible;
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(0);
-  transition: visibility 0s 0s, opacity 0.32s ease, transform 0.32s ease;
+  transition: visibility 0s 0s, opacity 0.35s ease;
 }
-.role-book::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  margin-left: -20px;
-  background: #b28a4e40;
-  box-shadow: 4px 0 #0006;
-}
-.book-heading {
+.book-container {
   display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 15px;
-  padding: 18px 20px 15px 28px;
-  border-bottom: 1px solid #3a2518;
-  flex-shrink: 0;
+  width: min(700px, 94vw);
+  height: min(520px, 85vh);
+  border-radius: 6px 12px 12px 6px;
+  box-shadow: 0 0 80px #000000cc, 0 0 200px #4a0a1a44;
+  overflow: hidden;
+  transform: scale(0.92);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.book-heading h2 {
-  margin: 8px 0 0;
-  color: #efe0bd;
-  font-family: "YouMurderer", cursive;
-  font-size: 3.6rem;
-  line-height: 0.75;
+.role-book.open .book-container {
+  transform: scale(1);
 }
-.book-heading button {
-  padding: 7px 10px;
-  border-color: #72512e;
-  background: #25160d;
-  color: #d4bd91;
-  font-size: 0.7rem;
-}
-
-/* ─── Book body ─── */
-.book-body {
-  flex: 1;
+.book-spine {
+  width: 44px;
+  background: linear-gradient(135deg, #2a1508, #1a0c04 40%, #0d0602);
+  border-right: 2px solid #4a2a18;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px 10px 28px;
-  perspective: 1400px;
-  min-height: 0;
+  flex-shrink: 0;
+  box-shadow: 2px 0 30px #0008;
+  position: relative;
 }
-.book-flipper {
-  display: flex;
-  gap: 10px;
-  width: 100%;
-  max-width: 460px;
-  height: 100%;
-  max-height: 380px;
-  transform-style: preserve-3d;
-  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s;
+.book-spine::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 50%;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, #8a6a4866, transparent);
 }
-.book-flipper.flip-next {
-  transform: perspective(1200px) rotateY(-10deg) scale(0.95);
-  opacity: 0;
+.book-spine span {
+  writing-mode: vertical-rl;
+  font-family: "YouMurderer", cursive;
+  font-size: 1.3rem;
+  letter-spacing: 0.3em;
+  color: #b89a6a;
+  text-shadow: 0 0 10px #b89a6a33;
+  opacity: 0.7;
 }
-.book-flipper.flip-prev {
-  transform: perspective(1200px) rotateY(10deg) scale(0.95);
-  opacity: 0;
-}
-
-/* ─── Left page ─── */
-.book-left {
+.book-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 20px 18px;
-  background: radial-gradient(ellipse at 50% 0%, #2a1d12, transparent 70%), #1a110a;
-  border: 1px solid #5a3a28;
-  border-radius: 4px 12px 12px 4px;
-  border-right: 2px solid #3a2518;
-  box-shadow: inset 0 0 40px #0005, 2px 0 15px #0006;
+  background:
+    repeating-linear-gradient(0deg, #0000 0 34px, #5a402210 35px),
+    radial-gradient(ellipse at 30% 20%, #3a251866, transparent 60%),
+    linear-gradient(180deg, #1a110a, #0f0905);
   overflow: hidden;
 }
-.book-left::before {
-  content: "";
-  position: absolute;
-  inset: 10px;
-  border: 1px solid #5a3a2844;
-  border-radius: 2px;
-  pointer-events: none;
-}
-.book-icon-wrap {
+.book-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 2px solid #7a5a38;
-  border-radius: 50% 42% 58% 46%;
-  margin-bottom: 10px;
-  background: #0f0804;
-  box-shadow: 0 0 20px #7a5a3844;
-  position: relative;
-  z-index: 1;
-}
-.book-icon {
-  font-family: "YouMurderer", cursive;
-  font-size: 1.8rem;
-  color: #d7bd86;
-  line-height: 1;
-}
-.book-team-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 0.6rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  align-self: flex-start;
-  background: #2a1a0a;
-  border: 1px solid #5a3a28;
-  color: #b89a6a;
-  position: relative;
-  z-index: 1;
-}
-.book-left[data-team="demon"] .book-team-badge {
-  border-color: #8f2833; color: #ff5266; background: #350a10;
-}
-.book-left[data-team="demon"] { border-color: #6a2028; }
-.book-left[data-team="demon"] .book-icon-wrap {
-  border-color: #8f2833; box-shadow: 0 0 20px #8f283344;
-}
-.book-left[data-team="demon"] .book-icon { color: #ff5266; }
-.book-left[data-team="loner"] .book-team-badge {
-  border-color: #69429a; color: #d6b4ff; background: #1c0c31;
-}
-.book-left[data-team="loner"] { border-color: #4a2a6a; }
-.book-left[data-team="loner"] .book-icon-wrap {
-  border-color: #69429a; box-shadow: 0 0 20px #69429a44;
-}
-.book-left[data-team="loner"] .book-icon { color: #d6b4ff; }
-.book-role-name {
-  margin: 0 0 8px;
-  color: #e9d9b9;
-  font-size: 1rem;
-  line-height: 1.2;
-  position: relative;
-  z-index: 1;
-}
-.book-desc {
-  margin: 0;
-  color: #ab9878;
-  font-size: 0.74rem;
-  line-height: 1.55;
-  flex: 1;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #5a3a2844 transparent;
-  position: relative;
-  z-index: 1;
-}
-.book-desc::-webkit-scrollbar { width: 3px; }
-.book-desc::-webkit-scrollbar-thumb { background: #5a3a2855; border-radius: 3px; }
-
-/* ─── Right page (card image) ─── */
-.book-right {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(ellipse at 50% 50%, #1a0f06, #0d0804);
-  border: 1px solid #4a2a1a;
-  border-radius: 12px 4px 4px 12px;
-  border-left: 2px solid #3a2010;
-  box-shadow: inset 0 0 40px #0005, -2px 0 15px #0006;
-  padding: 12px;
-}
-#book-role-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 6px;
-  filter: drop-shadow(0 0 15px #0008);
-}
-
-/* ─── Book footer (navigation) ─── */
-.book-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 14px 20px 20px 28px;
-  border-top: 1px solid #3a2518;
-  background: #0f0804cc;
+  justify-content: space-between;
+  padding: 18px 24px 12px;
+  border-bottom: 2px solid #3a2518;
   flex-shrink: 0;
+  background: linear-gradient(180deg, #1a0f08, transparent);
 }
-.book-nav-btn {
-  width: 36px;
-  height: 36px;
+.book-header h2 {
+  margin: 0;
+  color: #efe0bd;
+  font-family: "YouMurderer", cursive;
+  font-size: 2.8rem;
+  line-height: 1;
+  text-shadow: 2px 2px 0 #0008;
+}
+.book-header button {
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   border: 1px solid #5a3a28;
   border-radius: 50%;
-  background: #1a110a;
-  color: #d7bd86;
-  font-size: 1.3rem;
+  background: #1a0f08;
+  color: #b89a6a;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  transition: background 0.2s, border-color 0.2s;
   line-height: 1;
 }
-.book-nav-btn:hover {
+.book-header button:hover {
   background: #2a1a0a;
   border-color: #8a6a48;
-  transform: scale(1.1);
 }
-.book-nav-btn:disabled {
-  opacity: 0.3;
-  cursor: default;
-  transform: none;
+
+/* ─── Filter ─── */
+.book-filter {
+  display: flex;
+  gap: 6px;
+  padding: 12px 24px 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
 }
-.book-page-label {
+.filter-btn {
+  padding: 5px 14px;
+  border: 1px solid #4a2a1a;
+  border-radius: 20px;
+  background: transparent;
   color: #8a7a6a;
   font-size: 0.72rem;
-  min-width: 36px;
-  text-align: center;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.25s;
 }
-.book-dots {
+.filter-btn:hover {
+  border-color: #7a5a38;
+  color: #c9b088;
+}
+.filter-btn.active {
+  background: #2a1a0a;
+  border-color: #b89a6a;
+  color: #efe0bd;
+  box-shadow: 0 0 12px #b89a6a33;
+}
+.filter-btn[data-filter="demon"].active {
+  border-color: #ff5266;
+  color: #ff5266;
+  background: #350a10;
+  box-shadow: 0 0 12px #ff526633;
+}
+.filter-btn[data-filter="loner"].active {
+  border-color: #d6b4ff;
+  color: #d6b4ff;
+  background: #1c0c31;
+  box-shadow: 0 0 12px #d6b4ff33;
+}
+
+/* ─── Pages (role entries) ─── */
+.book-pages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 24px 20px;
+  scrollbar-width: thin;
+  scrollbar-color: #3a251866 transparent;
+}
+.book-pages::-webkit-scrollbar { width: 5px; }
+.book-pages::-webkit-scrollbar-track { background: transparent; }
+.book-pages::-webkit-scrollbar-thumb { background: #3a251888; border-radius: 4px; }
+.book-entry {
   display: flex;
-  gap: 4px;
+  gap: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px dashed #3a251844;
+  transition: background 0.25s;
+  border-radius: 6px;
+}
+.book-entry:hover {
+  background: #2a1a0e55;
+}
+.book-entry.hidden-entry {
+  display: none;
+}
+.book-entry-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #5a3a28;
+  border-radius: 50% 44% 56% 48%;
+  background: #0f0804;
+  flex-shrink: 0;
+  font-family: "YouMurderer", cursive;
+  font-size: 1.6rem;
+  color: #d7bd86;
+  box-shadow: 0 0 12px #5a3a2822;
+}
+.book-entry-body {
+  flex: 1;
+  min-width: 0;
+}
+.book-entry-name {
+  color: #e9d9b9;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
 }
-.book-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #3a2a1a;
-  transition: background 0.3s, transform 0.3s;
+.book-entry-tag {
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid;
+  opacity: 0.7;
 }
-.book-dot.active {
-  background: #b89a6a;
-  transform: scale(1.4);
-  box-shadow: 0 0 6px #b89a6a66;
+.tag-demon { border-color: #8f2833; color: #ff5266; background: #350a1022; }
+.tag-village { border-color: #5a7a3a; color: #8ac86a; background: #1a2a0a22; }
+.tag-loner { border-color: #69429a; color: #d6b4ff; background: #1c0c3122; }
+.book-entry-desc {
+  margin: 0;
+  color: #ab9878;
+  font-size: 0.74rem;
+  line-height: 1.55;
+}
+.book-entry-flavor {
+  display: block;
+  margin-top: 5px;
+  color: #8a7a5a;
+  font-style: italic;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  border-left: 2px solid #5a3a2844;
+  padding-left: 10px;
+}
+.book-entry[data-team="demon"] .book-entry-icon {
+  border-color: #8f2833; color: #ff5266; box-shadow: 0 0 12px #8f283344;
+}
+.book-entry[data-team="demon"] .book-entry-name { color: #ff7a8a; }
+.book-entry[data-team="loner"] .book-entry-icon {
+  border-color: #69429a; color: #d6b4ff; box-shadow: 0 0 12px #69429a44;
+}
+.book-entry[data-team="loner"] .book-entry-name { color: #caa6f7; }
+.book-entry[data-team="loner"] .book-entry-flavor {
+  color: #a07ad7; border-left-color: #69429a44;
+}
+.book-entry[data-team="demon"] .book-entry-flavor {
+  color: #ff7a8a; border-left-color: #8f283344;
+}
+.book-entry-card {
+  flex-shrink: 0;
+  width: 56px;
+  height: 76px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #3a251844;
+  background: #0f0804;
+  align-self: center;
+}
+.book-entry-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.book-empty {
+  color: #5a4a3a;
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+@media (max-width: 640px) {
+  .book-container {
+    width: 96vw;
+    height: 90vh;
+    border-radius: 4px 8px 8px 4px;
+  }
+  .book-spine { width: 28px; }
+  .book-spine span { font-size: 0.9rem; }
+  .book-header { padding: 14px 16px 10px; }
+  .book-header h2 { font-size: 2rem; }
+  .book-filter { padding: 8px 16px 6px; gap: 4px; }
+  .filter-btn { padding: 4px 10px; font-size: 0.66rem; }
+  .book-pages { padding: 4px 12px 16px; }
+  .book-entry { padding: 10px 12px; gap: 10px; }
+  .book-entry-icon { width: 32px; height: 32px; font-size: 1.2rem; }
+  .book-entry-name { font-size: 0.82rem; }
+  .book-entry-desc { font-size: 0.7rem; }
 }
 .phase-clock {
   min-width: 76px;

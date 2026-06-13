@@ -133,33 +133,21 @@
         </header>
         <div id="voice-audio" class="voice-audio" aria-hidden="true"></div>
         <aside id="role-book" class="role-book" aria-hidden="true">
-          <div class="book-heading">
-            <div>
-              <h2>Hướng dẫn</h2>
-            </div>
-            <button id="role-book-close" aria-label="Đóng sổ vai">Đóng</button>
-          </div>
-          <div class="book-body">
-            <div class="book-flipper" id="book-flipper">
-              <div class="book-left">
-                <div class="book-icon-wrap" id="book-role-icon-wrap">
-                  <span id="book-role-icon" class="book-icon"></span>
-                </div>
-                <span class="book-team-badge" id="book-role-team"></span>
-                <h3 id="book-role-name" class="book-role-name"></h3>
-                <p id="book-role-desc" class="book-desc"></p>
-                <em id="book-role-flavor" class="book-flavor"></em>
+          <div class="book-container">
+            <div class="book-spine"><span>QUỶ LIẾM</span></div>
+            <div class="book-content">
+              <div class="book-header">
+                <h2>Hướng dẫn vai trò</h2>
+                <button id="role-book-close" aria-label="Đóng">✕</button>
               </div>
-              <div class="book-right">
-                <img id="book-role-image" src="" alt="" />
+              <div class="book-filter" id="book-filter">
+                <button class="filter-btn active" data-filter="all">Tất cả</button>
+                <button class="filter-btn" data-filter="demon">Quỷ</button>
+                <button class="filter-btn" data-filter="village">Dân</button>
+                <button class="filter-btn" data-filter="loner">Độc Hành</button>
               </div>
+              <div class="book-pages" id="book-pages"></div>
             </div>
-          </div>
-          <div class="book-footer">
-            <button id="book-prev" class="book-nav-btn" aria-label="Trang trước">‹</button>
-            <div class="book-dots" id="book-dots"></div>
-            <span class="book-page-label" id="book-page-label">1/13</span>
-            <button id="book-next" class="book-nav-btn" aria-label="Trang sau">›</button>
           </div>
         </aside>
         <div id="toast-container" class="toast-container" aria-live="polite"></div>
