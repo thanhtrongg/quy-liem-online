@@ -270,6 +270,27 @@ header {
   grid-template-columns: 1fr 1.3fr;
   gap: 15px;
 }
+.eyebrow {
+  color: #c9a0a8;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.7;
+  margin-bottom: 3px;
+  line-height: 1.4;
+}
+body[data-phase="night"] .eyebrow {
+  color: #8a7acc;
+  opacity: 0.55;
+}
+body[data-role="demon"] .eyebrow,
+body[data-role="junior"] .eyebrow {
+  color: #ff5266;
+}
+body[data-role="seer"] .eyebrow {
+  color: #b47aff;
+}
 .panel {
   padding: 21px;
   border-radius: 16px;
