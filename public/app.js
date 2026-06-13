@@ -11,6 +11,23 @@ let clockTimer = null;
 let roleBookOpen = false;
 let previousRole = null;
 let toastTimer = null;
+let roleCardRevealed = false;
+
+const ROLE_CARD_IMAGES = {
+  demon: "quyliem",
+  junior: "quyliemnhi",
+  seer: "cobehaydoan",
+  witch: "caubechoibua",
+  guard: "gabeonongtinh",
+  villager: "anhhangxom",
+  springroll: "chagio",
+  hunter: "lovuong",
+  cupid: "nguoiyeucu",
+  spirit: "quyliemtinh",
+  bisexual: "gaylo",
+  thangngoo: "thangngoo",
+  priest: "chasu",
+};
 let ambientGlitchTimer = null;
 let voiceActive = false;
 let voiceStream = null;
@@ -346,6 +363,10 @@ socket.on("state", (next) => {
   if (next.status === "ended" || next.status === "lobby") {
     stopAmbientGlitch();
     roleParticles.stop();
+  }
+  if (next.status === "lobby") {
+    roleCardRevealed = false;
+    $("mini-card").classList.add("hidden");
   }
 });
 socket.on("connect", () => {
@@ -751,6 +772,55 @@ function showToast(message, type = "") {
   }, 2800);
 }
 
+function triggerRoleCardReveal(role) {
+  const filename = ROLE_CARD_IMAGES[role];
+  if (!filename) return;
+  const img = $("card-role-image");
+  const miniImg = $("mini-card-image");
+  const src = `/images/${filename}.png`;
+  img.src = src;
+  miniImg.src = src;
+  img.alt = state.roleInfo[role]?.name || role;
+
+  const reveal = $("role-card-reveal");
+  const flipper = $("card-flipper");
+  const container = $("card-container");
+
+  reveal.classList.remove("shrink");
+  flipper.classList.remove("flipped");
+  void reveal.offsetWidth;
+
+  reveal.classList.add("active");
+
+  const flipTimeout = setTimeout(() => {
+    flipper.classList.add("flipped");
+  }, 600);
+
+  const shrinkTimeout = setTimeout(() => {
+    reveal.classList.add("shrink");
+  }, 2200);
+
+  const hideTimeout = setTimeout(() => {
+    reveal.classList.remove("active", "shrink");
+    $("mini-card").classList.remove("hidden");
+  }, 3200);
+
+  const cleanup = () => {
+    clearTimeout(flipTimeout);
+    clearTimeout(shrinkTimeout);
+    clearTimeout(hideTimeout);
+  };
+
+  reveal._cleanup = cleanup;
+  reveal.addEventListener("click", () => {
+    if (reveal.classList.contains("active") && !reveal.classList.contains("shrink")) {
+      cleanup();
+      reveal.classList.remove("active");
+      $("mini-card").classList.remove("hidden");
+    }
+  }, { once: true });
+}
+
 function renderIdentity() {
   const role = state.me?.role;
   const roleName = $("role-name");
@@ -768,6 +838,10 @@ function renderIdentity() {
         roleDesc.classList.remove("role-reveal");
         roleFlavor.classList.remove("role-reveal");
       }, 700);
+    }
+    if (!roleCardRevealed) {
+      roleCardRevealed = true;
+      triggerRoleCardReveal(role);
     }
     previousRole = role;
   } else {

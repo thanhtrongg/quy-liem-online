@@ -32,6 +32,22 @@
     <canvas id="noise-canvas" class="noise-canvas"></canvas>
     <canvas id="role-particles" class="role-particles"></canvas>
     <div id="blood-splatter" class="blood-splatter"></div>
+    <div id="role-card-reveal" class="card-reveal">
+      <div class="card-reveal-bg"></div>
+      <div class="card-container" id="card-container">
+        <div class="card-flipper" id="card-flipper">
+          <div class="card-face card-backface">
+            <div class="card-back-design"></div>
+          </div>
+          <div class="card-face card-roleface">
+            <img id="card-role-image" src="" alt="" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="mini-card" class="mini-card hidden">
+      <img id="mini-card-image" src="" alt="" />
+    </div>
     <div id="phase-transition" class="cinematic-overlay" aria-live="polite">
       <div class="cinematic-symbol"></div>
       <strong id="transition-title"></strong>
