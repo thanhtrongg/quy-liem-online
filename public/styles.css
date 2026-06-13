@@ -291,6 +291,19 @@ body[data-role="junior"] .eyebrow {
 body[data-role="seer"] .eyebrow {
   color: #b47aff;
 }
+
+/* ─── End game: hide gameplay panels ─── */
+body[data-game-status="ended"] .identity,
+body[data-game-status="ended"] .action-panel,
+body[data-game-status="ended"] .players-panel {
+  display: none;
+}
+body[data-game-status="ended"] .game-grid {
+  grid-template-columns: 1fr;
+}
+body[data-game-status="ended"] .journal {
+  max-height: none;
+}
 .panel {
   padding: 21px;
   border-radius: 16px;

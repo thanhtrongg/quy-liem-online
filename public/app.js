@@ -394,6 +394,7 @@ function render() {
   enterRoom();
   document.body.dataset.phase = state.phase;
   document.body.dataset.role = state.me?.role || "";
+  document.body.dataset.gameStatus = state.status;
   renderSoundToggle();
   renderVoiceToggle();
   $("leave-room").classList.toggle(
