@@ -186,6 +186,17 @@ button.primary {
   background: linear-gradient(135deg, #ef1935, #850713);
   border-color: #f13c4d;
 }
+button.danger,
+.kick-member {
+  border-color: #8f2431;
+  background: #310a10;
+  color: #ff9ba8;
+}
+button.danger:hover,
+.kick-member:hover {
+  border-color: #ef344c;
+  background: #510b16;
+}
 button.ghost {
   background: transparent;
 }
@@ -396,6 +407,34 @@ header {
   color: white;
   padding: 7px;
   border-radius: 7px;
+}
+.host-danger {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid #6e2029;
+  background: #18070a;
+}
+.host-danger strong,
+.host-danger small {
+  display: block;
+}
+.host-danger small {
+  margin-top: 4px;
+  color: #a98287;
+}
+.kick-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.kick-member {
+  padding: 8px 11px;
+  font-size: 0.75rem;
+}
+.host-danger > .danger {
+  justify-self: start;
 }
 .witch-actions {
   display: flex;

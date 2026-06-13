@@ -18,6 +18,13 @@ const serverReady = new Promise((resolve, reject) => {
 });
 
 const emit = (socket, event, payload) => new Promise((resolve) => socket.emit(event, payload, resolve));
+const once = (socket, event, timeout = 3000) => new Promise((resolve, reject) => {
+  const timer = setTimeout(() => reject(new Error(`Timeout waiting for event: ${event}`)), timeout);
+  socket.once(event, (payload) => {
+    clearTimeout(timer);
+    resolve(payload);
+  });
+});
 const nextState = (socket, predicate, timeout = 3000) => new Promise((resolve, reject) => {
   if (latest.has(socket) && predicate(latest.get(socket))) return resolve(latest.get(socket));
   const timer = setTimeout(() => reject(new Error(`Timeout waiting for state: ${predicate}`)), timeout);
@@ -58,6 +65,25 @@ async function createGroup(prefix, roles) {
 
 async function run() {
   await serverReady;
+  const managed = await Promise.all([connect(), connect(), connect()]);
+  managed.forEach((client) => client.on("state", (state) => latest.set(client, state)));
+  const managedRoom = await emit(managed[0], "create-room", { name: "Manager" });
+  assert((await emit(managed[1], "join-room", { name: "Kick Me", code: managedRoom.code })).ok);
+  assert((await emit(managed[2], "join-room", { name: "Stay", code: managedRoom.code })).ok);
+  const managedState = await nextState(managed[0], (state) => state.players.length === 3);
+  const kickTarget = managedState.players.find((player) => player.name === "Kick Me");
+  assert((await emit(managed[2], "kick-player", { playerId: kickTarget.id })).error);
+  const kicked = once(managed[1], "room-closed");
+  assert((await emit(managed[0], "kick-player", { playerId: kickTarget.id })).ok);
+  assert((await kicked).reason.includes("kick"));
+  assert((await emit(managed[2], "cancel-room", {})).error);
+  const closedHost = once(managed[0], "room-closed");
+  const closedMember = once(managed[2], "room-closed");
+  assert((await emit(managed[0], "cancel-room", {})).ok);
+  assert((await closedHost).reason.includes("hủy phòng"));
+  assert((await closedMember).reason.includes("hủy phòng"));
+  managed.forEach((client) => client.disconnect());
+
   const clients = await createGroup("Basic", { demon: 1, seer: 0, witch: 0, guard: 0, villager: 3, hunter: 0, cupid: 0, junior: 0 });
   const nightStates = await Promise.all(clients.map((client) => nextState(client, (state) => state.phase === "night")));
   const demonIndex = nightStates.findIndex((state) => state.me.role === "demon");
@@ -161,7 +187,7 @@ async function run() {
   assert(survivedState.players.find((player) => player.id === accused).alive);
   defenseClients.forEach((client) => client.disconnect());
 
-  console.log("Smoke test passed: phases, timed votes, replay, defense withdrawal, Hunter shot, roles, and win conditions.");
+  console.log("Smoke test passed: room management, phases, timed votes, replay, roles, and win conditions.");
 }
 
 run()

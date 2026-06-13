@@ -70,6 +70,12 @@ $("new-room").onclick = () => {
   localStorage.removeItem("quy-liem-session");
   window.location.reload();
 };
+$("cancel-room").onclick = () => {
+  if (!window.confirm("Hủy phòng hiện tại? Tất cả người chơi sẽ bị đưa về màn hình chính.")) return;
+  socket.emit("cancel-room", {}, (res) => {
+    if (res?.error) showError("host-error", res.error);
+  });
+};
 
 socket.on("state", (next) => {
   const previous = state;
@@ -85,6 +91,15 @@ socket.on("connect", () => {
     if (res.error) localStorage.removeItem("quy-liem-session");
     else enterRoom();
   });
+});
+socket.on("room-closed", ({ reason }) => {
+  localStorage.removeItem("quy-liem-session");
+  state = null;
+  selected = [];
+  witchMode = null;
+  $("game").classList.add("hidden");
+  $("welcome").classList.remove("hidden");
+  showError("welcome-error", reason || "Phòng hiện tại đã đóng.");
 });
 
 function render() {
@@ -384,6 +399,17 @@ function renderHost() {
   document.querySelectorAll("[data-role]").forEach((el) => el.onchange = () => {
     const roles = { ...state.roles, [el.dataset.role]: Number(el.value) };
     socket.emit("set-roles", roles);
+  });
+  const kickable = state.players.filter((player) => player.id !== state.me.id);
+  $("kick-list").innerHTML = kickable.length
+    ? kickable.map((player) => `<button class="kick-member" data-kick="${player.id}">Kick ${escapeHtml(player.name)}</button>`).join("")
+    : '<small>Chưa có thành viên nào để kick.</small>';
+  document.querySelectorAll("[data-kick]").forEach((button) => button.onclick = () => {
+    const player = state.players.find((candidate) => candidate.id === button.dataset.kick);
+    if (!player || !window.confirm(`Kick ${player.name} khỏi phòng?`)) return;
+    socket.emit("kick-player", { playerId: player.id }, (res) => {
+      if (res?.error) showError("host-error", res.error);
+    });
   });
 }
 

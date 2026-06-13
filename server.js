@@ -456,6 +456,49 @@ io.on("connection", (socket) => {
     emitRoom(room);
   });
 
+  socket.on("kick-player", ({ playerId }, callback) => {
+    const room = rooms.get(socket.data.roomCode);
+    if (!room || room.hostId !== socket.data.playerId || room.status !== "lobby") {
+      return callback?.({ error: "Chỉ chủ phòng có thể kick thành viên khi đang ở sảnh chờ." });
+    }
+    if (!playerId || playerId === room.hostId) return callback?.({ error: "Không thể kick chủ phòng." });
+    const target = getPlayer(room, playerId);
+    if (!target) return callback?.({ error: "Không tìm thấy thành viên." });
+    room.players = room.players.filter((player) => player.id !== playerId);
+    addLog(room, `${target.name} đã bị chủ phòng kick.`);
+    if (target.socketId) {
+      const targetSocket = io.sockets.sockets.get(target.socketId);
+      targetSocket?.leave(room.code);
+      if (targetSocket) {
+        targetSocket.data.roomCode = null;
+        targetSocket.data.playerId = null;
+      }
+      io.to(target.socketId).emit("room-closed", { reason: "Bạn đã bị chủ phòng kick khỏi phòng." });
+    }
+    callback?.({ ok: true });
+    emitRoom(room);
+  });
+
+  socket.on("cancel-room", (_, callback) => {
+    const room = rooms.get(socket.data.roomCode);
+    if (!room || room.hostId !== socket.data.playerId) {
+      return callback?.({ error: "Chỉ chủ phòng có thể hủy phòng." });
+    }
+    clearPhaseTimer(room);
+    rooms.delete(room.code);
+    for (const player of room.players) {
+      if (!player.socketId) continue;
+      const playerSocket = io.sockets.sockets.get(player.socketId);
+      playerSocket?.leave(room.code);
+      if (playerSocket) {
+        playerSocket.data.roomCode = null;
+        playerSocket.data.playerId = null;
+      }
+      io.to(player.socketId).emit("room-closed", { reason: "Chủ phòng đã hủy phòng hiện tại." });
+    }
+    callback?.({ ok: true });
+  });
+
   socket.on("start-game", (_, callback) => {
     const room = rooms.get(socket.data.roomCode);
     if (!room || room.hostId !== socket.data.playerId || room.status !== "lobby") return;
