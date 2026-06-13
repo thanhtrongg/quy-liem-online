@@ -1,6 +1,18 @@
 const { ROLE_INFO, isWolf } = require("./roles");
 const { getPlayer, alive } = require("./utils");
 
+function voiceChannel(room, player) {
+  if (!room || !player || room.status !== "playing" || !player.alive || !player.connected) return null;
+  if (["day", "defense"].includes(room.phase)) return "town";
+  if (room.phase === "night" && room.nightStep === "wolves" && ["demon", "junior"].includes(player.role)) return "wolves";
+  return null;
+}
+
+function canShareVoice(room, first, second) {
+  const channel = voiceChannel(room, first);
+  return Boolean(channel && channel === voiceChannel(room, second));
+}
+
 function actionFor(room, me) {
   if (!me || room.status !== "playing") return null;
   if (room.phase === "hunter" && room.pendingHunter === me.id && !room.villagePowersDisabled) return { type: "hunter", label: "Chọn người kéo xuống mồ", count: 1 };
@@ -63,6 +75,10 @@ function publicState(room, socketId) {
     if (targetId) (votesByTarget[targetId] ||= []).push(voterId);
     else if (["day", "night"].includes(room.phase)) blankVoters.push(voterId);
   });
+  const currentVoiceChannel = voiceChannel(room, me);
+  const voicePeerIds = currentVoiceChannel
+    ? room.players.filter((player) => player.id !== me.id && canShareVoice(room, me, player)).map((player) => player.id)
+    : [];
   return {
     code: room.code,
     isHost,
@@ -108,7 +124,11 @@ function publicState(room, socketId) {
     logs: room.logs.slice(-30),
     witch: me?.role === "witch" ? room.witch : null,
     pendingHunter: room.pendingHunter === socketId,
-    villagePowersDisabled: room.villagePowersDisabled
+    villagePowersDisabled: room.villagePowersDisabled,
+    voice: {
+      enabled: Boolean(currentVoiceChannel),
+      peerIds: voicePeerIds
+    }
   };
 }
 
@@ -118,4 +138,4 @@ function emitRoom(io, room) {
   }
 }
 
-module.exports = { publicState, actionFor, emitRoom };
+module.exports = { publicState, actionFor, emitRoom, voiceChannel, canShareVoice };

@@ -6,7 +6,7 @@ const { Server } = require("socket.io");
 const { cleanName, shuffle, getPlayer, alive, addLog } = require("./game/utils");
 const { ROLE_INFO } = require("./game/roles");
 const { rooms, DEFAULT_ROLES, createRoom, resetRoomToLobby, clearPhaseTimer } = require("./game/room");
-const { emitRoom, actionFor } = require("./game/state");
+const { emitRoom, actionFor, canShareVoice } = require("./game/state");
 const {
   validateTargets, killWithChains, checkWinner, beginDay, beginNight,
   startDayVote, finishDayVote, finishDefense, checkNightReady
@@ -178,6 +178,17 @@ io.on("connection", (socket) => {
     beginNight(io, room);
     callback?.({ ok: true });
     emitRoom(io, room);
+  });
+
+  socket.on("voice-signal", ({ targetId, signal } = {}, callback) => {
+    const room = rooms.get(socket.data.roomCode);
+    const sender = room && getPlayer(room, socket.data.playerId);
+    const target = room && getPlayer(room, targetId);
+    if (!room || !sender || !target || !target.socketId || !signal || !canShareVoice(room, sender, target)) {
+      return callback?.({ error: "Bạn không thể dùng mic với người này lúc này." });
+    }
+    io.to(target.socketId).emit("voice-signal", { fromId: sender.id, signal });
+    callback?.({ ok: true });
   });
 
   socket.on("act", ({ targets = [], mode = null }, callback) => {

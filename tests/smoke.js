@@ -2,7 +2,7 @@ const { spawn } = require("child_process");
 const { io } = require("socket.io-client");
 const assert = require("assert");
 const { killWithChains, buildNightSteps, chooseWolfVictim, actorsForStep } = require("../game/engine");
-const { actionFor } = require("../game/state");
+const { actionFor, canShareVoice } = require("../game/state");
 const { schedulePhase } = require("../game/room");
 
 const port = 3200 + Math.floor(Math.random() * 700);
@@ -186,6 +186,19 @@ function testHunterDeathRules() {
   majorityRoom.actions["wolf-c"] = { targets: [], mode: "skip" };
   chooseWolfVictim(majorityRoom);
   assert.equal(majorityRoom.nightVictim, null);
+
+  const voiceRoom = {
+    status: "playing",
+    phase: "night",
+    nightStep: "wolves"
+  };
+  const demonVoice = { role: "demon", alive: true, connected: true };
+  const juniorVoice = { role: "junior", alive: true, connected: true };
+  const spiritVoice = { role: "spirit", alive: true, connected: true };
+  assert(canShareVoice(voiceRoom, demonVoice, juniorVoice));
+  assert(!canShareVoice(voiceRoom, demonVoice, spiritVoice));
+  voiceRoom.phase = "day";
+  assert(canShareVoice(voiceRoom, demonVoice, spiritVoice));
 }
 
 async function run() {
@@ -234,12 +247,22 @@ async function run() {
   const demonIndex = nightStates.findIndex((state) => state.me.role === "demon");
   assert(demonIndex >= 0);
   const target = nightStates[demonIndex].players.find((p) => p.id !== nightStates[demonIndex].me.id);
+  const targetIndex = nightStates.findIndex((state) => state.me.id === target.id);
+  assert.equal(nightStates[demonIndex].voice.enabled, true);
+  assert.equal(nightStates[targetIndex].voice.enabled, false);
+  assert((await emit(clients[demonIndex], "voice-signal", { targetId: target.id, signal: { type: "ready" } })).error);
   const dayPromise = clients.map((client) => nextState(client, (state) => state.phase === "day" || state.phase === "ended"));
   assert((await emit(clients[demonIndex], "act", { targets: [target.id], mode: null })).ok);
   const dayStates = await Promise.all(dayPromise);
   assert(dayStates.every((state) => state.phase === "day"));
 
   const living = dayStates.map((state, index) => ({ state, index })).filter(({ state }) => state.me.alive);
+  assert(living.every(({ state }) => state.voice.enabled));
+  const voiceSender = living[0];
+  const voiceTarget = living[1];
+  const voiceSignal = once(clients[voiceTarget.index], "voice-signal");
+  assert((await emit(clients[voiceSender.index], "voice-signal", { targetId: voiceTarget.state.me.id, signal: { type: "ready" } })).ok);
+  assert.equal((await voiceSignal).fromId, voiceSender.state.me.id);
   const nextNight = nextState(clients[living[0].index], (state) => state.phase === "night");
   for (const { index } of living) assert((await emit(clients[index], "act", { targets: [], mode: "skip" })).ok);
   assert.equal((await nextNight).day, 2);

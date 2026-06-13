@@ -12,6 +12,13 @@ let roleBookOpen = false;
 let previousRole = null;
 let toastTimer = null;
 let ambientGlitchTimer = null;
+let voiceActive = false;
+let voiceStream = null;
+let voiceError = "";
+const voicePeers = new Map();
+const RTC_CONFIG = {
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+};
 $("background-music").volume = 0.3;
 $("death-scream").volume = 0.78;
 
@@ -102,6 +109,149 @@ function renderSoundToggle() {
     : "Nhạc nền: Tắt";
   $("music-toggle").classList.toggle("muted", !musicEnabled);
 }
+
+function sendVoiceSignal(targetId, signal) {
+  socket.emit("voice-signal", { targetId, signal }, () => {});
+}
+
+function closeVoicePeer(peerId) {
+  const peer = voicePeers.get(peerId);
+  if (!peer) return;
+  peer.pc.onicecandidate = null;
+  peer.pc.ontrack = null;
+  peer.pc.close();
+  peer.audio.remove();
+  voicePeers.delete(peerId);
+}
+
+function stopVoice() {
+  voiceActive = false;
+  voiceStream?.getTracks().forEach((track) => track.stop());
+  voiceStream = null;
+  [...voicePeers.keys()].forEach(closeVoicePeer);
+  renderVoiceToggle();
+}
+
+function createVoicePeer(peerId) {
+  if (!voiceActive || !voiceStream || !state?.voice?.peerIds?.includes(peerId))
+    return null;
+  if (voicePeers.has(peerId)) return voicePeers.get(peerId).pc;
+
+  const pc = new RTCPeerConnection(RTC_CONFIG);
+  const audio = document.createElement("audio");
+  audio.autoplay = true;
+  audio.playsInline = true;
+  audio.dataset.peerId = peerId;
+  $("voice-audio").append(audio);
+  voiceStream.getTracks().forEach((track) => pc.addTrack(track, voiceStream));
+  pc.onicecandidate = ({ candidate }) => {
+    if (candidate) sendVoiceSignal(peerId, { type: "candidate", candidate });
+  };
+  pc.ontrack = ({ streams }) => {
+    audio.srcObject = streams[0];
+    audio.play().catch(() => {});
+  };
+  pc.onconnectionstatechange = () => {
+    if (["failed", "closed"].includes(pc.connectionState)) closeVoicePeer(peerId);
+  };
+  voicePeers.set(peerId, { pc, audio });
+  return pc;
+}
+
+async function offerVoice(peerId) {
+  const pc = createVoicePeer(peerId);
+  if (!pc || pc.signalingState !== "stable") return;
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  sendVoiceSignal(peerId, { type: "offer", sdp: pc.localDescription });
+}
+
+async function startVoice() {
+  if (!state?.voice?.enabled || voiceActive) return;
+  voiceError = "";
+  try {
+    voiceStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+      video: false,
+    });
+    if (!state?.voice?.enabled) {
+      voiceStream.getTracks().forEach((track) => track.stop());
+      voiceStream = null;
+      return;
+    }
+    voiceActive = true;
+    renderVoiceToggle();
+    for (const peerId of state.voice.peerIds) {
+      sendVoiceSignal(peerId, { type: "ready" });
+      if (state.me.id.localeCompare(peerId) < 0) offerVoice(peerId).catch(() => {});
+    }
+  } catch {
+    voiceError = "Trình duyệt chưa cấp quyền mic";
+    stopVoice();
+  }
+}
+
+function syncVoiceAccess() {
+  if (!state?.voice?.enabled) {
+    voiceError = "";
+    stopVoice();
+    return;
+  }
+  const allowedPeers = new Set(state.voice.peerIds);
+  [...voicePeers.keys()]
+    .filter((peerId) => !allowedPeers.has(peerId))
+    .forEach(closeVoicePeer);
+  if (!voiceActive) return renderVoiceToggle();
+  for (const peerId of allowedPeers) {
+    sendVoiceSignal(peerId, { type: "ready" });
+    if (state.me.id.localeCompare(peerId) < 0) offerVoice(peerId).catch(() => {});
+  }
+  renderVoiceToggle();
+}
+
+function renderVoiceToggle() {
+  const button = $("mic-toggle");
+  if (!button) return;
+  button.classList.toggle("hidden", !state?.voice?.enabled);
+  button.classList.toggle("active", voiceActive);
+  button.classList.toggle("error", Boolean(voiceError));
+  button.textContent = voiceError || (voiceActive ? "Tắt mic" : "Bật mic");
+  button.setAttribute("aria-pressed", String(voiceActive));
+}
+
+$("mic-toggle").onclick = () => {
+  if (voiceActive) stopVoice();
+  else startVoice();
+};
+
+socket.on("voice-signal", async ({ fromId, signal }) => {
+  if (!voiceActive || !state?.voice?.peerIds?.includes(fromId) || !signal) return;
+  try {
+    if (signal.type === "ready") {
+      if (state.me.id.localeCompare(fromId) < 0) await offerVoice(fromId);
+      return;
+    }
+    const pc = createVoicePeer(fromId);
+    if (!pc) return;
+    if (signal.type === "offer") {
+      await pc.setRemoteDescription(signal.sdp);
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      sendVoiceSignal(fromId, { type: "answer", sdp: pc.localDescription });
+    } else if (signal.type === "answer") {
+      await pc.setRemoteDescription(signal.sdp);
+    } else if (signal.type === "candidate") {
+      await pc.addIceCandidate(signal.candidate);
+    }
+  } catch {
+    closeVoicePeer(fromId);
+  }
+});
+
 function rememberSession(res) {
   localStorage.setItem(
     "quy-liem-session",
@@ -182,6 +332,7 @@ socket.on("state", (next) => {
     witchMode = null;
   }
   toggleRoleBook(false);
+  syncVoiceAccess();
   render();
   setRoleParticles(next.me?.role, next.phase);
   runStateEffects(previous, next);
@@ -202,6 +353,7 @@ socket.on("connect", () => {
 });
 socket.on("room-closed", ({ reason }) => {
   stopAmbientGlitch();
+  stopVoice();
   localStorage.removeItem("quy-liem-session");
   state = null;
   selected = [];
@@ -210,12 +362,14 @@ socket.on("room-closed", ({ reason }) => {
   $("welcome").classList.remove("hidden");
   showError("welcome-error", reason || "Phòng hiện tại đã đóng.");
 });
+socket.on("disconnect", stopVoice);
 
 function render() {
   enterRoom();
   document.body.dataset.phase = state.phase;
   document.body.dataset.role = state.me?.role || "";
   renderSoundToggle();
+  renderVoiceToggle();
   $("leave-room").classList.toggle(
     "hidden",
     state.isHost || !["lobby", "ended"].includes(state.status),
