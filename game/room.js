@@ -1,7 +1,7 @@
 const { randomUUID } = require("crypto");
 const { randomCode } = require("./utils");
 
-const DEFAULT_ROLES = { demon: 1, spirit: 0, seer: 1, witch: 1, guard: 1, villager: 2, springroll: 0, hunter: 1, cupid: 1, junior: 0, bisexual: 0, thangngoo: 0, priest: 0 };
+const DEFAULT_ROLES = { demon: 1, spirit: 0, seer: 0, witch: 0, guard: 0, villager: 1, springroll: 0, hunter: 0, cupid: 0, junior: 0, bisexual: 0, thangngoo: 0, priest: 0 };
 const rooms = new Map();
 
 function clearPhaseTimer(room) {

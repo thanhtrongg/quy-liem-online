@@ -1170,21 +1170,47 @@ function renderHost() {
   if (!state.isHost || state.status !== "lobby")
     return panel.classList.add("hidden");
   panel.classList.remove("hidden");
-  $("role-config").innerHTML = Object.entries(state.roles)
-    .map(
-      ([role, count]) => `
-    <label class="role-control"><span>${state.roleInfo[role].name}</span><input type="number" min="0" max="${role === "spirit" ? 1 : 20}" data-role="${role}" value="${count}"></label>`,
-    )
+  const teamLabels = { demon: "Quỷ", village: "Dân", loner: "Độc" };
+  const teamOrder = ["demon", "village", "loner"];
+  const sorted = Object.entries(state.roles).sort(([a], [b]) => {
+    const ta = state.roleInfo[a]?.team, tb = state.roleInfo[b]?.team;
+    if (ta !== tb) return teamOrder.indexOf(ta) - teamOrder.indexOf(tb);
+    return a.localeCompare(b);
+  });
+  $("role-config").innerHTML = sorted
+    .map(([role, count]) => {
+      const info = state.roleInfo[role];
+      const max = role === "spirit" ? 1 : 20;
+      const tag = teamLabels[info?.team] || "";
+      return `<div class="role-control" data-role="${role}">
+        <div class="role-label">
+          <span class="role-label-icon">${info?.icon || "•"}</span>
+          <span class="role-label-name">${info?.name || role}</span>
+          ${tag ? `<span class="role-label-tag tag-${info.team}">${tag}</span>` : ""}
+        </div>
+        <div class="role-stepper">
+          <button class="step-down" data-role="${role}" aria-label="Giảm">−</button>
+          <span class="role-count" data-role="${role}">${count}</span>
+          <button class="step-up" data-role="${role}" aria-label="Tăng" ${count >= max ? "disabled" : ""}>+</button>
+        </div>
+      </div>`;
+    })
     .join("");
   $("role-total").textContent =
     `Tổng vai: ${Object.values(state.roles).reduce((a, b) => a + b, 0)} / ${state.players.length} người`;
-  document.querySelectorAll("#role-config [data-role]").forEach(
-    (el) =>
-      (el.onchange = () => {
-        const roles = { ...state.roles, [el.dataset.role]: Number(el.value) };
-        socket.emit("set-roles", roles);
-      }),
-  );
+  const emitRoles = (role, delta) => {
+    const info = state.roleInfo[role];
+    const max = role === "spirit" ? 1 : 20;
+    const cur = state.roles[role] || 0;
+    const next = Math.max(0, Math.min(max, cur + delta));
+    if (next === cur) return;
+    const roles = { ...state.roles, [role]: next };
+    socket.emit("set-roles", roles);
+  };
+  document.querySelectorAll("#role-config .step-down").forEach((btn) =>
+    btn.onclick = () => emitRoles(btn.dataset.role, -1));
+  document.querySelectorAll("#role-config .step-up").forEach((btn) =>
+    btn.onclick = () => emitRoles(btn.dataset.role, 1));
   const kickable = state.players.filter((player) => player.id !== state.me.id);
   $("kick-list").innerHTML = kickable.length
     ? kickable

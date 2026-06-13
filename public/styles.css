@@ -621,28 +621,121 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
   background: #ef315718;
   border: 1px solid #ef315744;
 }
+/* ─── Role config (stepper UI) ─── */
 .role-config {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 8px;
-  margin: 15px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 12px 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #3a251866 transparent;
 }
+.role-config::-webkit-scrollbar { width: 4px; }
+.role-config::-webkit-scrollbar-thumb { background: #3a251888; border-radius: 4px; }
 .role-control {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 6px 10px 6px 12px;
   background: #15111c;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 8px;
+  transition: border-color 0.2s, background 0.2s;
 }
-.role-control input {
-  width: 52px;
+.role-control:hover {
+  border-color: #4a2a3a;
+  background: #191422;
+}
+.role-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.role-label-icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #3a2a3a;
+  border-radius: 50% 44% 56% 48%;
   background: #0e0b13;
-  border: 1px solid var(--line);
-  color: white;
-  padding: 7px;
-  border-radius: 7px;
+  flex-shrink: 0;
+  font-family: "YouMurderer", cursive;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.role-label-name {
+  color: #e9d9b9;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.role-label-tag {
+  font-size: 0.48rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 8px;
+  border: 1px solid;
+  opacity: 0.55;
+  line-height: 1.4;
+}
+.role-label-tag.tag-demon { border-color: #8f2833; color: #ff5266; }
+.role-label-tag.tag-village { border-color: #3a6a9a; color: #7ac8ff; }
+.role-label-tag.tag-loner { border-color: #69429a; color: #d6b4ff; }
+.role-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+}
+.role-stepper button {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #2a1a2a;
+  background: #0e0b13;
+  color: #d4bd91;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  line-height: 1;
+  padding: 0;
+}
+.role-stepper button:first-child {
+  border-radius: 6px 0 0 6px;
+  border-right: none;
+}
+.role-stepper button:last-child {
+  border-radius: 0 6px 6px 0;
+  border-left: none;
+}
+.role-stepper button:hover {
+  background: #2a1a0a;
+  border-color: #4a3a2a;
+}
+.role-stepper button:active {
+  background: #3a2a1a;
+}
+.role-stepper .role-count {
+  width: 34px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid #2a1a2a;
+  border-bottom: 1px solid #2a1a2a;
+  background: #0e0b13;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 .host-danger {
   display: grid;
