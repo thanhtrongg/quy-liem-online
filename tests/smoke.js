@@ -128,6 +128,18 @@ async function run() {
   assert((await Promise.all(savedDay)).every((state) => state.players.every((player) => player.alive)));
   witchClients.forEach((client) => client.disconnect());
 
+  const seerClients = await createGroup("Seer", { demon: 1, seer: 1, witch: 0, guard: 0, villager: 2, hunter: 0, cupid: 0, junior: 0 });
+  const seerNight = await Promise.all(seerClients.map((client) => nextState(client, (state) => state.phase === "night")));
+  const seerIndex = seerNight.findIndex((state) => state.me.role === "seer");
+  const seenDemon = seerNight.find((state) => state.me.role === "demon").me.id;
+  const alignmentResult = nextState(seerClients[seerIndex], (state) => state.seerResult?.targetName);
+  assert((await emit(seerClients[seerIndex], "act", { targets: [seenDemon], mode: null })).ok);
+  const seerState = await alignmentResult;
+  assert.equal(seerState.seerResult.alignment, "bad");
+  assert.equal(seerState.seerResult.isDemon, undefined);
+  assert.equal(seerState.seerResult.role, undefined);
+  seerClients.forEach((client) => client.disconnect());
+
   const equalClients = await createGroup("Equal", { demon: 2, seer: 0, witch: 0, guard: 0, villager: 2, hunter: 0, cupid: 0, junior: 0 });
   const ended = await Promise.all(equalClients.map((client) => nextState(client, (state) => state.phase === "ended")));
   assert(ended.every((state) => state.winner === "demon"));

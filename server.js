@@ -211,7 +211,11 @@ io.on("connection", (socket) => {
       }
       if (action.type === "seer") {
         const target = getPlayer(room, targets[0]);
-        room.seerResult = { viewer: player.id, targetName: target.name, isDemon: ROLE_INFO[target.role].team === "demon" };
+        room.seerResult = {
+          viewer: player.id,
+          targetName: target.name,
+          alignment: ROLE_INFO[target.role].team === "demon" ? "bad" : "good"
+        };
       }
     }
     callback?.({ ok: true });

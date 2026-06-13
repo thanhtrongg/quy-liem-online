@@ -1,6 +1,6 @@
 const ROLE_INFO = {
   demon: { name: "Quỷ Liếm", team: "demon", icon: "⛧", description: "Mỗi đêm chọn một người để liếm đít. Sáng hôm sau người đó biến mất.", flavor: "Một bóng đen từ địa ngục. Ngươi là nỗi khiếp sợ của cả khu phố. Hãy săn mồi!" },
-  seer: { name: "Cô Bé Hay Đoán", team: "village", icon: "◈", description: "Mỗi đêm đoán một người có phải Quỷ Liếm hay không.", flavor: "Đôi mắt tinh anh nhìn thấu linh hồn. Sự thật không thể che giấu trước ánh nhìn của em." },
+  seer: { name: "Cô Bé Hay Đoán", team: "village", icon: "◈", description: "Mỗi đêm soi một người và chỉ biết họ thuộc phe Tốt hay phe Xấu.", flavor: "Đôi mắt tinh anh nhìn thấu linh hồn. Sự thật không thể che giấu trước ánh nhìn của em." },
   witch: { name: "Cậu Bé Chơi Bùa", team: "village", icon: "⚗", description: "Có một bùa cứu và một bùa hại, mỗi bùa chỉ dùng một lần.", flavor: "Những lọ thuốc bí ẩn chứa sức mạnh sinh tử. Một giọt cứu sống, một giọt hủy diệt." },
   guard: { name: "Gã Béo Nóng Tính", team: "village", icon: "⛨", description: "Mỗi đêm bảo kê một người khỏi Quỷ Liếm.", flavor: "Thân hình to lớn che chắn cho khu phố. Không một con quỷ nào qua được vòng tay gã." },
   villager: { name: "Anh Hàng Xóm", team: "village", icon: "◇", description: "Không có kỹ năng đặc biệt. Hãy thảo luận và biểu quyết.", flavor: "Một người dân bình thường. Nhưng chính những người bình thường tạo nên sức mạnh của khu phố." },

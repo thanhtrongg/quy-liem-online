@@ -599,7 +599,7 @@ function renderIdentity() {
     bits.push(`Đồng đội: ${mates.map((p) => p.name).join(", ")}`);
   if (state.seerResult)
     bits.push(
-      `${state.seerResult.targetName}: ${state.seerResult.isDemon ? "Là Quỷ Liếm" : "không phải Quỷ Liếm"}`,
+      `${state.seerResult.targetName}: ${state.seerResult.alignment === "bad" ? "XẤU" : "TỐT"}`,
     );
   $("private-info").innerHTML = bits
     .map((x) => `<p>${escapeHtml(x)}</p>`)
