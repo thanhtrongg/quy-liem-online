@@ -11,10 +11,10 @@ function clearPhaseTimer(room) {
   room.phaseStartedAt = null;
 }
 
-function schedulePhase(room, duration, callback) {
+function schedulePhase(room, duration, callback, displayDuration = duration) {
   clearPhaseTimer(room);
   room.phaseStartedAt = Date.now();
-  room.phaseEndsAt = Date.now() + duration;
+  room.phaseEndsAt = room.phaseStartedAt + displayDuration;
   room.phaseTimer = setTimeout(() => {
     room.phaseTimer = null;
     room.phaseEndsAt = null;

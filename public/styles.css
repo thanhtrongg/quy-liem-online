@@ -277,7 +277,6 @@ body[data-role="demon"] .identity {
 body[data-role="demon"] .identity h2 {
   color: #ff1744;
   text-shadow: 0 0 20px #ff1744, 0 0 40px #ff174466;
-  animation: demon-glow 2s ease-in-out infinite alternate;
 }
 body[data-role="demon"] #role-desc { color: #ff8a9e; }
 body[data-role="demon"] #role-flavor { color: #ff7a8a; border-left-color: #ff174455; }
@@ -300,7 +299,6 @@ body[data-role="spirit"] .identity {
 body[data-role="spirit"] .identity h2 {
   color: #d4a4ff;
   text-shadow: 0 0 18px #b163ff, 0 0 38px #6e259f88;
-  animation: demon-glow 2.4s ease-in-out infinite alternate;
 }
 body[data-role="spirit"] #role-desc { color: #d8b7f5; }
 body[data-role="spirit"] #role-flavor { color: #b98add; border-left-color: #8249b966; }
@@ -323,7 +321,6 @@ body[data-role="seer"] .identity {
 body[data-role="seer"] .identity h2 {
   color: #ce93d8;
   text-shadow: 0 0 20px #ce93d8, 0 0 40px #ce93d844;
-  animation: seer-glow 2.5s ease-in-out infinite alternate;
 }
 body[data-role="seer"] #role-desc { color: #d1c4e9; }
 body[data-role="seer"] #role-flavor { color: #b39ddb; border-left-color: #b388ff44; }
@@ -335,7 +332,6 @@ body[data-role="witch"] .identity {
 body[data-role="witch"] .identity h2 {
   color: #69f0ae;
   text-shadow: 0 0 20px #69f0ae, 0 0 40px #69f0ae44;
-  animation: witch-glow 2s ease-in-out infinite alternate;
 }
 body[data-role="witch"] #role-desc { color: #a5d6a7; }
 body[data-role="witch"] #role-flavor { color: #81c784; border-left-color: #69f0ae44; }
@@ -369,7 +365,6 @@ body[data-role="cupid"] .identity {
 body[data-role="cupid"] .identity h2 {
   color: #f06292;
   text-shadow: 0 0 20px #f06292, 0 0 40px #f0629244;
-  animation: cupid-glow 1.5s ease-in-out infinite alternate;
 }
 body[data-role="cupid"] #role-desc { color: #f8bbd0; }
 body[data-role="cupid"] #role-flavor { color: #f48fb1; border-left-color: #f0629244; }
@@ -383,22 +378,6 @@ body[data-role="villager"] .identity h2 {
 body[data-role="villager"] #role-desc { color: #9e9e9e; }
 body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75757544; }
 
-@keyframes demon-glow {
-  0% { text-shadow: 0 0 10px #ff174488, 0 0 20px #ff174444; }
-  100% { text-shadow: 0 0 30px #ff1744, 0 0 60px #ff1744, 0 0 80px #ff174444; }
-}
-@keyframes seer-glow {
-  0% { text-shadow: 0 0 10px #ce93d888, 0 0 20px #ce93d844; }
-  100% { text-shadow: 0 0 25px #ce93d8, 0 0 50px #ce93d866; }
-}
-@keyframes witch-glow {
-  0% { text-shadow: 0 0 10px #69f0ae88, 0 0 20px #69f0ae44; }
-  100% { text-shadow: 0 0 25px #69f0ae, 0 0 50px #69f0ae66; }
-}
-@keyframes cupid-glow {
-  0% { text-shadow: 0 0 10px #f0629288, 0 0 20px #f0629244; }
-  100% { text-shadow: 0 0 25px #f06292, 0 0 50px #f0629266; }
-}
 #role-desc {
   font-size: 0.82rem;
   color: var(--muted);

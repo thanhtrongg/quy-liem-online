@@ -3,6 +3,7 @@ const { io } = require("socket.io-client");
 const assert = require("assert");
 const { killWithChains, buildNightSteps, chooseWolfVictim, actorsForStep } = require("../game/engine");
 const { actionFor } = require("../game/state");
+const { schedulePhase } = require("../game/room");
 
 const port = 3200 + Math.floor(Math.random() * 700);
 const origin = `http://localhost:${port}`;
@@ -189,6 +190,12 @@ function testHunterDeathRules() {
 
 async function run() {
   testHunterDeathRules();
+  const displayTimerRoom = {};
+  await new Promise((resolve) => {
+    schedulePhase(displayTimerRoom, 25, resolve, 300);
+    assert.equal(displayTimerRoom.phaseEndsAt - displayTimerRoom.phaseStartedAt, 300);
+  });
+  assert.equal(displayTimerRoom.phaseEndsAt, null);
   await serverReady;
   const managed = await Promise.all([connect(), connect(), connect()]);
   managed.forEach((client) => client.on("state", (state) => latest.set(client, state)));

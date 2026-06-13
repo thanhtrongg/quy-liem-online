@@ -36,7 +36,7 @@ function buildNightSteps(room) {
 
 function fakeStepDuration() {
   const min = Number(process.env.NIGHT_FAKE_DURATION_MIN_MS) || 5000;
-  const max = Math.max(min, Number(process.env.NIGHT_FAKE_DURATION_MAX_MS) || 10000);
+  const max = Math.max(min, Number(process.env.NIGHT_FAKE_DURATION_MAX_MS) || 12000);
   return min + Math.floor(Math.random() * (max - min + 1));
 }
 
@@ -67,10 +67,11 @@ function startNightStep(io, room) {
   while (room.nightStepIndex < room.nightSteps.length) {
     room.nightStep = room.nightSteps[room.nightStepIndex];
     const actors = actorsForStep(room, room.nightStep);
+    const actionDuration = Number(process.env.NIGHT_ACTION_DURATION_MS) || 30000;
     const duration = actors.length
-      ? Number(process.env.NIGHT_ACTION_DURATION_MS) || 30000
+      ? actionDuration
       : fakeStepDuration();
-    schedulePhase(room, duration, () => finishNightStep(io, room));
+    schedulePhase(room, duration, () => finishNightStep(io, room), actionDuration);
     emitRoom(io, room);
     return;
   }
