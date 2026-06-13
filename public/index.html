@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#120e19" />
+    <title>Quỷ Liếm Online</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <audio id="background-music" loop preload="auto">
+      <source src="/sounds/Chloe%27s%20Lullaby%20-%20Creepy%20Music%20Box.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="death-scream" preload="auto">
+      <source src="/sounds/Scary%20Demon%20Scream%20Sound%21.mp3" type="audio/mpeg" />
+    </audio>
+    <div class="mist mist-one"></div>
+    <div class="mist mist-two"></div>
+    <div id="phase-transition" class="cinematic-overlay" aria-live="polite">
+      <div class="cinematic-symbol"></div>
+      <strong id="transition-title"></strong>
+      <span id="transition-subtitle"></span>
+    </div>
+    <div id="death-scene" class="death-scene" aria-live="assertive">
+      <div class="death-mark">X</div>
+      <span>Khu phố vừa mất đi</span>
+      <strong id="death-name"></strong>
+    </div>
+    <main>
+      <section id="welcome" class="welcome">
+        <h1 aria-label="Quỷ Liếm">
+          <span class="logo-quy" aria-hidden="true">QUỶ</span>
+          <span class="logo-liem" aria-hidden="true">LIẾM</span>
+        </h1>
+        <p class="lead">Khu phố đang yên bình. Hơi yên bình quá mức.</p>
+        <div class="join-card">
+          <label
+            >Tên của bạn<input
+              id="name"
+              maxlength="24"
+              placeholder="Ví dụ: Liem Chua"
+          /></label>
+          <label
+            >Mã phòng<input id="code" maxlength="5" placeholder="ABCDE"
+          /></label>
+          <div class="button-row">
+            <button id="join" class="primary">Vào phòng</button>
+            <button id="create">Tạo phòng mới</button>
+          </div>
+          <p id="welcome-error" class="error"></p>
+        </div>
+      </section>
+
+      <section id="game" class="game hidden">
+        <header class="game-header">
+          <div>
+            <div class="eyebrow">Mã phòng</div>
+            <button id="copy-code" class="room-code"></button>
+          </div>
+          <div class="phase">
+            <span id="phase-label"></span><strong id="day-label"></strong>
+          </div>
+          <div id="phase-clock" class="phase-clock hidden">00:00</div>
+          <button id="music-toggle" class="sound-toggle" title="Bật/tắt nhạc nền" aria-label="Bật/tắt nhạc nền">Nhạc nền: Bật</button>
+          <button id="sound-toggle" class="sound-toggle" title="Bật/tắt âm thanh" aria-label="Bật/tắt âm thanh">Âm thanh: Bật</button>
+        </header>
+        <div id="banner" class="banner hidden"></div>
+        <section id="end-panel" class="end-panel hidden">
+          <div class="eyebrow">Ván đấu kết thúc</div>
+          <h2 id="end-title"></h2>
+          <p id="end-help"></p>
+          <div class="end-actions">
+            <button id="replay-room" class="primary hidden">Chơi lại cùng phòng</button>
+            <button id="new-room">Tạo phòng mới</button>
+          </div>
+          <p id="end-error" class="error"></p>
+        </section>
+        <div class="game-grid">
+          <section class="panel identity">
+            <div class="eyebrow">Danh tính của bạn</div>
+            <h2 id="role-name">Chưa phân vai</h2>
+            <p id="role-desc">Chờ chủ phòng bắt đầu trò chơi.</p>
+            <div id="private-info" class="private-info"></div>
+          </section>
+          <section class="panel action-panel">
+            <div class="eyebrow">Hành động</div>
+            <h2 id="action-title">Hãy chờ...</h2>
+            <p id="action-help">Trạng thái phòng sẽ tự động cập nhật.</p>
+            <div id="targets" class="targets"></div>
+            <div id="witch-actions" class="witch-actions"></div>
+            <button id="submit-action" class="primary hidden">Xác nhận</button>
+            <button id="skip-action" class="ghost hidden">Bỏ qua</button>
+            <p id="action-error" class="error"></p>
+          </section>
+          <section class="panel players-panel">
+            <div class="panel-heading">
+              <div>
+                <div class="eyebrow">Khu phố</div>
+                <h2 id="player-count"></h2>
+              </div>
+            </div>
+            <div id="players" class="players"></div>
+          </section>
+          <section class="panel journal">
+            <div class="eyebrow">Nhật ký khu phố</div>
+            <div id="logs" class="logs"></div>
+          </section>
+          <section id="host-panel" class="panel host hidden">
+            <div class="eyebrow">Bảng điều khiển chủ phòng</div>
+            <h2>Chọn đội hình</h2>
+            <div id="role-config" class="role-config"></div>
+            <p id="role-total"></p>
+            <button id="start" class="primary">Bắt đầu trò chơi</button>
+            <p id="host-error" class="error"></p>
+          </section>
+        </div>
+      </section>
+    </main>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1004 @@
+:root {
+  --bg: #100d16;
+  --panel: #1b1724;
+  --line: #342b43;
+  --text: #f4eff8;
+  --muted: #aaa0b5;
+  --red: #ef3157;
+  --red2: #9d1838;
+  --gold: #e4b45b;
+  --green: #55d39a;
+}
+@font-face {
+  font-family: "YouMurderer";
+  src: url("/fonts/SVN-YouMurdereBB.otf") format("opentype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #080505 url("/images/horror-alley-bg.png") center / cover fixed
+    no-repeat;
+  color: var(--text);
+  font-family: "Be Vietnam Pro", sans-serif;
+  min-height: 100vh;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at center, transparent 12%, #05030366 54%, #020101e8 100%),
+    linear-gradient(180deg, #00000038, #17000048);
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.23;
+  background-image:
+    repeating-linear-gradient(91deg, transparent 0 47px, #fff 48px, transparent 49px),
+    repeating-linear-gradient(3deg, transparent 0 83px, #000 84px, transparent 86px);
+  mix-blend-mode: overlay;
+}
+button,
+input {
+  font: inherit;
+}
+.hidden {
+  display: none !important;
+}
+.mist {
+  position: fixed;
+  z-index: 0;
+  border-radius: 0;
+  filter: blur(70px);
+  opacity: 0.22;
+  pointer-events: none;
+}
+.mist-one {
+  width: 52vw;
+  height: 18vh;
+  background: #e50016;
+  top: -16vh;
+  left: 24vw;
+}
+.mist-two {
+  width: 70vw;
+  height: 20vh;
+  background: #75000c;
+  right: 15vw;
+  bottom: -18vh;
+}
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: auto;
+  padding: 28px 18px 60px;
+}
+.welcome {
+  min-height: 88vh;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.welcome h1 {
+  font: clamp(5rem, 18vw, 11rem) / 0.8 "YouMurderer", cursive;
+  letter-spacing: 0.035em;
+  margin: 28px 0 18px;
+  filter: drop-shadow(5px 8px 0 #120000);
+  text-shadow: 0 0 28px #000, 0 0 65px #000;
+  white-space: nowrap;
+}
+.welcome h1 .logo-quy {
+  color: var(--text);
+}
+.welcome h1 .logo-liem {
+  color: #f0152f;
+}
+.lead {
+  color: #d5c9c9;
+  margin: 0 0 32px;
+  text-shadow: 0 2px 12px #000;
+}
+.join-card,
+.panel {
+  position: relative;
+  background: linear-gradient(
+    145deg,
+    rgba(22, 9, 12, 0.91),
+    rgba(5, 4, 5, 0.96)
+  );
+  border: 1px solid #6c1721;
+  box-shadow:
+    0 24px 70px #000,
+    inset 0 1px 0 #d92a3b33;
+  backdrop-filter: blur(8px);
+}
+.join-card {
+  width: min(460px, 92vw);
+  margin: auto;
+  padding: 24px;
+  text-align: left;
+  border-radius: 4px;
+  position: relative;
+}
+.join-card::before,
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid #ffffff0d;
+  pointer-events: none;
+}
+.join-card label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-bottom: 14px;
+}
+.join-card input {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  padding: 14px;
+  border-radius: 2px;
+  border: 1px solid #4a2025;
+  background: #080506db;
+  color: var(--text);
+  outline: none;
+  text-transform: none;
+}
+.join-card #code {
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+}
+.button-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+button {
+  border: 1px solid #4b2025;
+  color: var(--text);
+  background: #251316;
+  padding: 12px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.18s;
+}
+button:hover {
+  transform: translateY(-1px);
+  border-color: #665473;
+}
+button.primary {
+  background: linear-gradient(135deg, #ef1935, #850713);
+  border-color: #f13c4d;
+}
+button.ghost {
+  background: transparent;
+}
+.error {
+  color: #ff6d87;
+  font-size: 0.78rem;
+  min-height: 1em;
+  margin: 10px 0 0;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.room-code {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: white;
+  font-size: 2rem;
+  letter-spacing: 0.14em;
+}
+.phase {
+  text-align: right;
+}
+.phase span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+.phase strong {
+  font-size: 1.4rem;
+}
+.game-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 15px;
+}
+.panel {
+  padding: 21px;
+  border-radius: 16px;
+}
+.panel h2 {
+  margin: 8px 0 9px;
+  font-size: 1.25rem;
+}
+.panel p {
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 0.88rem;
+}
+.identity h2 {
+  font-size: 2rem;
+  color: var(--red);
+}
+.private-info {
+  color: var(--gold);
+  font-size: 0.82rem;
+}
+.players-panel,
+.host {
+  grid-column: 1/-1;
+}
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+}
+.player,
+.target {
+  border: 1px solid var(--line);
+  background: #15111c;
+  border-radius: 11px;
+  padding: 12px;
+  text-align: left;
+}
+.player strong,
+.target strong {
+  display: block;
+}
+.player small,
+.target small {
+  color: var(--muted);
+}
+.player.dead {
+  opacity: 0.46;
+  text-decoration: line-through;
+}
+.player.me {
+  border-color: var(--gold);
+}
+.target {
+  cursor: pointer;
+}
+.target.selected {
+  border-color: var(--red);
+  box-shadow: inset 0 0 0 1px var(--red);
+  background: #2c1521;
+}
+.targets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 7px;
+  margin: 14px 0;
+}
+.action-panel button {
+  margin-right: 6px;
+}
+.logs {
+  max-height: 220px;
+  overflow: auto;
+}
+.log {
+  padding: 10px 0;
+  border-bottom: 1px solid #2b2435;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.log.death {
+  color: #ff6d87;
+}
+.log.win {
+  color: var(--gold);
+  font-weight: 800;
+}
+.banner {
+  padding: 15px 20px;
+  border: 1px solid var(--gold);
+  background: #302515;
+  color: var(--gold);
+  border-radius: 12px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: 700;
+}
+.end-panel {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 18px;
+  padding: 30px;
+  border: 1px solid #bd2c3d;
+  background:
+    radial-gradient(circle at 50% 120%, #8d0c1c55, transparent 50%),
+    #090506ed;
+  box-shadow: 0 0 65px #b00d2538, 0 25px 70px #000;
+  text-align: center;
+}
+.end-panel::before,
+.end-panel::after {
+  content: "";
+  position: absolute;
+  width: 55%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #e62b42);
+  transform: rotate(-12deg);
+  left: -5%;
+  top: 18%;
+}
+.end-panel::after {
+  left: auto;
+  right: -5%;
+  transform: rotate(12deg);
+  background: linear-gradient(90deg, #e62b42, transparent);
+}
+.end-panel h2 {
+  margin: 12px 0 4px;
+  color: #ff3048;
+  font-family: "YouMurderer", cursive;
+  font-size: clamp(3.8rem, 9vw, 7rem);
+  line-height: 0.85;
+  text-shadow: 3px 4px #370008, 0 0 28px #bf142d;
+}
+.end-panel p {
+  color: #d2b9bc;
+}
+.end-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+.role-config {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+  margin: 15px 0;
+}
+.role-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #15111c;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+}
+.role-control input {
+  width: 52px;
+  background: #0e0b13;
+  border: 1px solid var(--line);
+  color: white;
+  padding: 7px;
+  border-radius: 7px;
+}
+.witch-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.witch-actions button.active {
+  border-color: var(--red);
+  background: #341622;
+}
+@media (max-width: 760px) {
+  body {
+    background-position: 36% center;
+  }
+  body::before {
+    background:
+      radial-gradient(circle at center, transparent 5%, #05030388 55%, #020101f2 100%),
+      linear-gradient(180deg, #00000044, #17000055);
+  }
+  main {
+    padding: 18px 12px 50px;
+  }
+  .game-grid {
+    grid-template-columns: 1fr;
+  }
+  .players-panel,
+  .host {
+    grid-column: auto;
+  }
+  .journal {
+    order: 5;
+  }
+  .button-row {
+    grid-template-columns: 1fr;
+  }
+  .panel {
+    padding: 17px;
+  }
+  .welcome h1 {
+    font-size: 4.8rem;
+  }
+}
+
+/* In-game command center */
+.game {
+  padding-top: 6px;
+}
+.game-header {
+  position: sticky;
+  top: 12px;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  gap: 18px;
+  align-items: center;
+  padding: 14px 18px;
+  border: 1px solid #72212b;
+  background: #090607e8;
+  box-shadow: 0 14px 45px #000c, inset 0 1px #ffffff12;
+  backdrop-filter: blur(18px);
+}
+.game-header::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -1px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+  opacity: 0.7;
+}
+.game-header .phase {
+  min-width: 180px;
+  padding-left: 18px;
+  border-left: 1px solid #63212a;
+}
+.room-code {
+  font-family: "YouMurderer", cursive;
+  font-size: 2.55rem;
+  line-height: 0.8;
+  color: #fff;
+  text-shadow: 0 0 15px #ec263d88;
+}
+.phase span {
+  color: #e5b3b8;
+  letter-spacing: 0.12em;
+}
+.phase strong {
+  display: block;
+  color: #fff;
+  margin-top: 3px;
+}
+.sound-toggle {
+  min-width: 128px;
+  padding: 9px 11px;
+  border-color: #6d2830;
+  background: #1d0d10;
+  color: #e6c9cc;
+  font-size: 0.72rem;
+}
+.sound-toggle.muted {
+  opacity: 0.55;
+}
+.phase-clock {
+  min-width: 76px;
+  padding: 8px 10px;
+  border: 1px solid #6f2831;
+  background: #17090c;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.08em;
+  box-shadow: inset 0 0 18px #ba142326;
+}
+.phase-clock.urgent {
+  color: #ff5367;
+  border-color: #e02a40;
+  animation: clock-pulse 0.8s infinite alternate;
+}
+body[data-phase="defense"] .action-panel {
+  border-color: #d09a38;
+  box-shadow: 0 0 30px #d09a3826, 0 24px 70px #000;
+}
+.game-grid {
+  grid-template-columns: minmax(280px, 0.85fr) minmax(360px, 1.5fr);
+  grid-template-areas:
+    "identity action"
+    "players players"
+    "journal journal"
+    "host host";
+  gap: 18px;
+}
+.identity {
+  grid-area: identity;
+  overflow: hidden;
+}
+.identity::after {
+  content: "";
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  right: -70px;
+  bottom: -75px;
+  border: 1px solid #a7263545;
+  border-radius: 50%;
+  box-shadow: 0 0 55px #c20b2630;
+}
+.identity h2 {
+  margin-top: 13px;
+  font-family: "YouMurderer", cursive;
+  font-size: clamp(2.6rem, 5vw, 4.1rem);
+  line-height: 0.82;
+  color: #ff2842;
+  text-shadow: 2px 3px #230006;
+}
+.private-info p {
+  margin: 8px 0 0;
+  padding: 9px 11px;
+  border-left: 2px solid var(--gold);
+  background: #d99b3210;
+  color: #f3cf8d;
+}
+.action-panel {
+  grid-area: action;
+  min-height: 250px;
+  border-color: #a72a38;
+}
+.action-panel h2 {
+  font-size: 1.65rem;
+}
+.players-panel {
+  grid-area: players;
+}
+.journal {
+  grid-area: journal;
+}
+.host {
+  grid-area: host;
+}
+.panel {
+  border-radius: 6px;
+  padding: 24px;
+}
+.panel-heading {
+  margin-bottom: 15px;
+}
+.panel-heading h2 {
+  margin-bottom: 0;
+}
+.players {
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 10px;
+}
+.player {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 11px;
+  min-height: 66px;
+  border-radius: 3px;
+  border-color: #482126;
+  background: linear-gradient(110deg, #140a0ce8, #090708);
+  transition: transform 0.2s, border-color 0.2s, filter 0.2s;
+}
+.player:hover {
+  transform: translateY(-2px);
+  border-color: #96303b;
+}
+.player-avatar {
+  --avatar-color: #ad071b;
+  --avatar-color-2: #2e0309;
+  --avatar-glow: #df1029;
+  --avatar-ink: #070304;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--avatar-color) 72%, #d7a5a9);
+  border-radius: 48% 52% 43% 57% / 58% 39% 61% 42%;
+  background:
+    radial-gradient(circle at 32% 28%, #f3d5c7a6 0 4%, transparent 6%),
+    repeating-radial-gradient(circle at 70% 65%, #0000 0 4px, #0004 5px 6px),
+    linear-gradient(145deg, var(--avatar-color), var(--avatar-color-2));
+  box-shadow:
+    0 0 13px color-mix(in srgb, var(--avatar-glow) 48%, transparent),
+    inset 0 0 10px #000c;
+  transform: rotate(var(--r));
+}
+.player-avatar.palette-1 {
+  --avatar-color: #640b59;
+  --avatar-color-2: #170317;
+  --avatar-glow: #a41991;
+}
+.player-avatar.palette-2 {
+  --avatar-color: #766739;
+  --avatar-color-2: #17130a;
+  --avatar-glow: #b39c59;
+}
+.player-avatar.palette-3 {
+  --avatar-color: #31665a;
+  --avatar-color-2: #061713;
+  --avatar-glow: #568c79;
+}
+.player-avatar.palette-4 {
+  --avatar-color: #762c18;
+  --avatar-color-2: #1e0803;
+  --avatar-glow: #b94b28;
+}
+.player-avatar.palette-5 {
+  --avatar-color: #4b536d;
+  --avatar-color-2: #090b14;
+  --avatar-glow: #737f9e;
+}
+.player-avatar::before,
+.player-avatar::after,
+.player-avatar i {
+  content: "";
+  position: absolute;
+  display: block;
+}
+.player-avatar::before {
+  width: 54%;
+  height: 54%;
+  border: 2px solid var(--avatar-ink);
+  border-radius: 48% 52% 50% 50%;
+  transform: rotate(45deg);
+}
+.player-avatar::after {
+  width: 18%;
+  height: 18%;
+  border-radius: 50%;
+  background: #e6c6b5;
+  box-shadow:
+    0 0 0 3px var(--avatar-ink),
+    0 0 8px #f1d0ba;
+}
+.player-avatar i {
+  inset: 3px 9px 5px 7px;
+  border: 1px solid #ead1c14d;
+  border-radius: 62% 38% 58% 42%;
+  transform: rotate(-16deg);
+}
+.player-avatar.sigil-1::before {
+  width: 65%;
+  height: 24%;
+  border-radius: 50% 20% 50% 20%;
+  transform: rotate(-18deg);
+}
+.player-avatar.sigil-2::before {
+  width: 50%;
+  height: 50%;
+  border-radius: 50% 0;
+  transform: rotate(22deg);
+}
+.player-avatar.sigil-3::before {
+  width: 0;
+  height: 0;
+  border: 12px solid transparent;
+  border-bottom: 21px solid var(--avatar-ink);
+  transform: translateY(-7px);
+}
+.player-avatar.sigil-4::before {
+  width: 66%;
+  height: 2px;
+  border: 0;
+  background: var(--avatar-ink);
+  box-shadow: 0 -7px var(--avatar-ink), 0 7px var(--avatar-ink);
+  transform: rotate(35deg);
+}
+.player-avatar::selection {
+  background: transparent;
+}
+.player-avatar:not(.mini) {
+  animation: sigil-breathe 3.8s ease-in-out infinite alternate;
+}
+.player-avatar.mini {
+  width: 25px;
+  height: 25px;
+  margin-left: -5px;
+  border-width: 1px;
+  box-shadow: 0 0 7px #000;
+}
+.player-avatar.mini::before {
+  border-width: 1px;
+}
+.player-avatar.mini::after {
+  box-shadow: 0 0 0 1px var(--avatar-ink);
+}
+.player-copy {
+  min-width: 0;
+}
+.player-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #55d39a;
+  box-shadow: 0 0 10px #55d39a;
+}
+.player.me {
+  border-color: #d3a64f;
+  background: linear-gradient(110deg, #21160c, #0c0807);
+}
+.player.dead {
+  opacity: 0.52;
+  text-decoration: none;
+  filter: grayscale(1);
+}
+.player.dead .player-avatar {
+  border-color: #6d1d27;
+}
+.player.dead .status-dot {
+  background: #7b1d28;
+  box-shadow: none;
+}
+.white-flag {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  color: #fff;
+  font-size: 1rem;
+  filter: drop-shadow(0 0 5px #fff);
+}
+.vote-stack {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  min-height: 27px;
+  padding-top: 7px;
+  border-top: 1px solid #ffffff0b;
+}
+.vote-stack b {
+  min-width: 22px;
+  margin-right: 8px;
+  color: #ff5367;
+  font-size: 0.76rem;
+}
+.target {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 3px;
+  background: #11090b;
+  border-color: #4d2026;
+}
+.target span:not(.player-avatar) {
+  min-width: 0;
+}
+.target:hover {
+  border-color: #c03140;
+  background: #271015;
+}
+.target.selected {
+  border-color: #ff344c;
+  box-shadow: 0 0 18px #d2142e55, inset 0 0 0 1px #ff344c;
+  background: #3b1018;
+}
+.logs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 7px;
+  max-height: 250px;
+}
+.log {
+  padding: 11px 12px;
+  border: 1px solid #3f1c21;
+  background: #0c0809b8;
+}
+.log.death {
+  border-color: #771f2a;
+  background: #29080e;
+}
+.banner {
+  border-radius: 3px;
+  box-shadow: 0 0 45px #dfa62930;
+}
+
+/* Cinematic state effects */
+.cinematic-overlay,
+.death-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+}
+.cinematic-overlay {
+  background: radial-gradient(circle, #18080cdd, #010102fa 70%);
+  transition: opacity 0.35s, visibility 0.35s;
+}
+.cinematic-overlay.show {
+  visibility: visible;
+  opacity: 1;
+  animation: phase-fade 2.2s both;
+}
+.cinematic-overlay strong {
+  position: relative;
+  font-family: "YouMurderer", cursive;
+  font-size: clamp(4.5rem, 12vw, 9rem);
+  line-height: 0.8;
+  color: #f5e9e9;
+  text-align: center;
+  text-shadow: 0 0 35px #d81e37;
+}
+.cinematic-overlay span {
+  margin-top: 18px;
+  color: #cf9aa1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+.cinematic-overlay.day {
+  background: radial-gradient(circle, #482016d9, #090404f7 70%);
+}
+.cinematic-overlay.day strong {
+  color: #f5d9bf;
+  text-shadow: 0 0 35px #e25c2d;
+}
+.cinematic-symbol {
+  width: 74px;
+  height: 74px;
+  margin-bottom: 25px;
+  border: 2px solid #d62039;
+  border-radius: 50%;
+  box-shadow: 0 0 30px #d62039;
+}
+.day .cinematic-symbol {
+  background: #dd5c2e;
+  border-color: #efb07a;
+  box-shadow: 0 0 55px #e85c2f;
+}
+.death-scene {
+  overflow: hidden;
+  background: radial-gradient(circle, #7e0710e8, #030101f8 72%);
+}
+.death-scene::before,
+.death-scene::after {
+  content: "";
+  position: absolute;
+  width: 130vw;
+  height: 5px;
+  background: #ff1835;
+  box-shadow: 0 0 25px #ff1835;
+  transform: rotate(-11deg);
+}
+.death-scene::after {
+  transform: rotate(13deg);
+}
+.death-scene.show {
+  visibility: visible;
+  animation: death-flash 3s both;
+}
+.death-mark {
+  color: #ff1733;
+  font-family: "YouMurderer", cursive;
+  font-size: clamp(8rem, 22vw, 18rem);
+  line-height: 0.55;
+  text-shadow: 0 0 45px #ff1733;
+}
+.death-scene span {
+  margin-top: 28px;
+  color: #dabdc0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+}
+.death-scene strong {
+  margin-top: 8px;
+  color: #fff;
+  font-family: "YouMurderer", cursive;
+  font-size: clamp(4rem, 11vw, 8rem);
+  line-height: 0.8;
+  text-align: center;
+  text-shadow: 3px 4px #53000a;
+}
+body[data-phase="night"] .game-header {
+  border-color: #382c66;
+  box-shadow: 0 14px 45px #000d, 0 0 25px #342d7a2b;
+}
+body[data-phase="night"] .game-header::after {
+  background: linear-gradient(90deg, transparent, #6d5bcd, transparent);
+}
+.death-shake main {
+  animation: screen-shake 0.65s both;
+}
+@keyframes phase-fade {
+  0% { opacity: 0; filter: blur(9px); }
+  18%, 70% { opacity: 1; filter: blur(0); }
+  100% { opacity: 0; visibility: hidden; }
+}
+@keyframes death-flash {
+  0% { opacity: 0; filter: contrast(2); }
+  5% { opacity: 1; }
+  9% { opacity: 0.3; }
+  13%, 75% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0); }
+  15% { transform: translate(-8px, 4px) rotate(-0.4deg); }
+  30% { transform: translate(7px, -5px) rotate(0.35deg); }
+  48% { transform: translate(-5px, -2px); }
+  64% { transform: translate(4px, 3px); }
+  82% { transform: translate(-2px, 1px); }
+}
+@keyframes clock-pulse {
+  to { box-shadow: 0 0 20px #e02a4070, inset 0 0 18px #ba142340; }
+}
+@keyframes sigil-breathe {
+  from { filter: saturate(0.82) brightness(0.82); }
+  to { filter: saturate(1.2) brightness(1.08); }
+}
+@media (max-width: 760px) {
+  .game-header {
+    top: 5px;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 12px;
+  }
+  .game-header .phase {
+    min-width: 0;
+    padding-left: 10px;
+  }
+  .phase-clock {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  #music-toggle {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 7px;
+  }
+  #sound-toggle {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    padding: 7px;
+  }
+  .game-grid {
+    grid-template-areas: "identity" "action" "players" "journal" "host";
+    grid-template-columns: 1fr;
+  }
+  .players {
+    grid-template-columns: 1fr;
+  }
+  .panel {
+    padding: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

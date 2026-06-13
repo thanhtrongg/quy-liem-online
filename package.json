@@ -1,0 +1,23 @@
+{
+  "name": "quy-liem-online",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Game suy luận xã hội Quỷ Liếm chơi online",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node --check server.js && node --check public/app.js",
+    "test": "node tests/smoke.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.3"
+  }
+}
