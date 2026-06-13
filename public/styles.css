@@ -969,16 +969,19 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
 .book-header button {
   width: 32px;
   height: 32px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   border: 1px solid #5a3a28;
   border-radius: 50%;
   background: #1a0f08;
   color: #b89a6a;
-  font-size: 1rem;
+  font-size: 1.1rem;
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
   line-height: 1;
+  font-family: "Georgia", serif;
 }
 .book-header button:hover {
   background: #2a1a0a;
@@ -1120,6 +1123,9 @@ body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75
 }
 .book-entry[data-team="demon"] .book-entry-flavor {
   color: #ff7a8a; border-left-color: #8f283344;
+}
+.book-entry[data-team="village"] .book-entry-flavor {
+  color: #7ac8ff; border-left-color: #3a6a9a44;
 }
 .book-entry-card {
   flex-shrink: 0;
