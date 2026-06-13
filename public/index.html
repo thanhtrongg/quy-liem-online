@@ -28,6 +28,10 @@
     </audio>
     <div class="mist mist-one"></div>
     <div class="mist mist-two"></div>
+    <div id="glitch-overlay" class="glitch-overlay"></div>
+    <canvas id="noise-canvas" class="noise-canvas"></canvas>
+    <canvas id="role-particles" class="role-particles"></canvas>
+    <div id="blood-splatter" class="blood-splatter"></div>
     <div id="phase-transition" class="cinematic-overlay" aria-live="polite">
       <div class="cinematic-symbol"></div>
       <strong id="transition-title"></strong>
@@ -72,7 +76,10 @@
           <div class="phase">
             <span id="phase-label"></span><strong id="day-label"></strong>
           </div>
-          <div id="phase-clock" class="phase-clock hidden">00:00</div>
+          <div id="phase-clock" class="phase-clock hidden">
+            <span id="clock-digits">00:00</span>
+            <div id="timer-track"><div id="timer-fill"></div></div>
+          </div>
           <button
             id="role-book-toggle"
             class="book-toggle"
@@ -111,12 +118,13 @@
           </p>
           <div id="role-book-list" class="role-book-list"></div>
         </aside>
-        <div id="book-backdrop" class="book-backdrop"></div>
+        <div id="toast-container" class="toast-container" aria-live="polite"></div>
+    <div id="book-backdrop" class="book-backdrop"></div>
         <div id="banner" class="banner hidden"></div>
         <section id="end-panel" class="end-panel hidden">
-          <div class="eyebrow">Ván đấu kết thúc</div>
           <h2 id="end-title"></h2>
           <p id="end-help"></p>
+          <div id="role-reveal-list" class="role-reveal-list"></div>
           <div class="end-actions">
             <button id="replay-room" class="primary hidden">
               Chơi lại cùng phòng
@@ -130,6 +138,7 @@
             <div class="eyebrow">Danh tính của bạn</div>
             <h2 id="role-name">Game chưa bắt đầu</h2>
             <p id="role-desc">Chờ chủ phòng bắt đầu trò chơi.</p>
+            <em id="role-flavor"></em>
             <div id="private-info" class="private-info"></div>
           </section>
           <section class="panel action-panel">

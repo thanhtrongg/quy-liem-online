@@ -19,6 +19,9 @@
 * {
   box-sizing: border-box;
 }
+html {
+  overflow-x: hidden;
+}
 body {
   margin: 0;
   background: #080505 url("/images/horror-alley-bg.png") center / cover fixed
@@ -78,6 +81,7 @@ input {
   right: 15vw;
   bottom: -18vh;
 }
+
 main {
   position: relative;
   z-index: 1;
@@ -105,6 +109,9 @@ main {
 }
 .welcome h1 .logo-liem {
   color: #f0152f;
+}
+.welcome h1 {
+  animation: rgb-shift 0.5s ease-out 0.3s 1;
 }
 .lead {
   color: #d5c9c9;
@@ -250,9 +257,142 @@ header {
   line-height: 1.6;
   font-size: 0.88rem;
 }
+.identity {
+  transition: border-color 0.5s;
+}
 .identity h2 {
   font-size: 2rem;
-  color: var(--red);
+  transition: color 0.5s, text-shadow 0.5s;
+}
+#role-desc {
+  transition: color 0.5s;
+}
+#role-flavor {
+  transition: color 0.5s, border-color 0.5s;
+}
+body[data-role="demon"] .identity {
+  border-color: #ff1744;
+  box-shadow: 0 0 30px #ff174422, inset 0 0 40px #ff174411;
+}
+body[data-role="demon"] .identity h2 {
+  color: #ff1744;
+  text-shadow: 0 0 20px #ff1744, 0 0 40px #ff174466;
+  animation: demon-glow 2s ease-in-out infinite alternate;
+}
+body[data-role="demon"] #role-desc { color: #ff8a9e; }
+body[data-role="demon"] #role-flavor { color: #ff7a8a; border-left-color: #ff174455; }
+
+body[data-role="junior"] .identity {
+  border-color: #ff6d00;
+  box-shadow: 0 0 20px #ff6d0022, inset 0 0 30px #ff6d0011;
+}
+body[data-role="junior"] .identity h2 {
+  color: #ff9100;
+  text-shadow: 0 0 15px #ff9100, 0 0 30px #ff910044;
+}
+body[data-role="junior"] #role-desc { color: #ffb56b; }
+body[data-role="junior"] #role-flavor { color: #ffab40; border-left-color: #ff6d0044; }
+
+body[data-role="seer"] .identity {
+  border-color: #b388ff;
+  box-shadow: 0 0 30px #b388ff33, inset 0 0 40px #b388ff11;
+}
+body[data-role="seer"] .identity h2 {
+  color: #ce93d8;
+  text-shadow: 0 0 20px #ce93d8, 0 0 40px #ce93d844;
+  animation: seer-glow 2.5s ease-in-out infinite alternate;
+}
+body[data-role="seer"] #role-desc { color: #d1c4e9; }
+body[data-role="seer"] #role-flavor { color: #b39ddb; border-left-color: #b388ff44; }
+
+body[data-role="witch"] .identity {
+  border-color: #69f0ae;
+  box-shadow: 0 0 30px #69f0ae33, inset 0 0 40px #69f0ae11;
+}
+body[data-role="witch"] .identity h2 {
+  color: #69f0ae;
+  text-shadow: 0 0 20px #69f0ae, 0 0 40px #69f0ae44;
+  animation: witch-glow 2s ease-in-out infinite alternate;
+}
+body[data-role="witch"] #role-desc { color: #a5d6a7; }
+body[data-role="witch"] #role-flavor { color: #81c784; border-left-color: #69f0ae44; }
+
+body[data-role="guard"] .identity {
+  border-color: #ffd740;
+  box-shadow: 0 0 30px #ffd74033, inset 0 0 40px #ffd74011;
+}
+body[data-role="guard"] .identity h2 {
+  color: #ffd740;
+  text-shadow: 0 0 20px #ffd740, 0 0 40px #ffd74044;
+}
+body[data-role="guard"] #role-desc { color: #ffe082; }
+body[data-role="guard"] #role-flavor { color: #ffcc02; border-left-color: #ffd74044; }
+
+body[data-role="hunter"] .identity {
+  border-color: #616161;
+  box-shadow: 0 0 25px #d5000022, inset 0 0 35px #d5000011;
+}
+body[data-role="hunter"] .identity h2 {
+  color: #d32f2f;
+  text-shadow: 0 0 15px #d32f2f66;
+}
+body[data-role="hunter"] #role-desc { color: #bdbdbd; }
+body[data-role="hunter"] #role-flavor { color: #ef9a9a; border-left-color: #d32f2f44; }
+
+body[data-role="cupid"] .identity {
+  border-color: #f48fb1;
+  box-shadow: 0 0 30px #f48fb133, inset 0 0 40px #f48fb111;
+}
+body[data-role="cupid"] .identity h2 {
+  color: #f06292;
+  text-shadow: 0 0 20px #f06292, 0 0 40px #f0629244;
+  animation: cupid-glow 1.5s ease-in-out infinite alternate;
+}
+body[data-role="cupid"] #role-desc { color: #f8bbd0; }
+body[data-role="cupid"] #role-flavor { color: #f48fb1; border-left-color: #f0629244; }
+
+body[data-role="villager"] .identity {
+  border-color: #757575;
+}
+body[data-role="villager"] .identity h2 {
+  color: #bdbdbd;
+}
+body[data-role="villager"] #role-desc { color: #9e9e9e; }
+body[data-role="villager"] #role-flavor { color: #9e9e9e; border-left-color: #75757544; }
+
+@keyframes demon-glow {
+  0% { text-shadow: 0 0 10px #ff174488, 0 0 20px #ff174444; }
+  100% { text-shadow: 0 0 30px #ff1744, 0 0 60px #ff1744, 0 0 80px #ff174444; }
+}
+@keyframes seer-glow {
+  0% { text-shadow: 0 0 10px #ce93d888, 0 0 20px #ce93d844; }
+  100% { text-shadow: 0 0 25px #ce93d8, 0 0 50px #ce93d866; }
+}
+@keyframes witch-glow {
+  0% { text-shadow: 0 0 10px #69f0ae88, 0 0 20px #69f0ae44; }
+  100% { text-shadow: 0 0 25px #69f0ae, 0 0 50px #69f0ae66; }
+}
+@keyframes cupid-glow {
+  0% { text-shadow: 0 0 10px #f0629288, 0 0 20px #f0629244; }
+  100% { text-shadow: 0 0 25px #f06292, 0 0 50px #f0629266; }
+}
+#role-desc {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+#role-flavor {
+  display: block;
+  margin-top: 8px;
+  font-style: italic;
+  font-size: 0.78rem;
+  color: #d7bd86;
+  line-height: 1.45;
+  border-left: 2px solid #84623944;
+  padding-left: 10px;
+}
+.is-demon#role-flavor {
+  color: #ff7a8a;
+  border-left-color: #8f283344;
 }
 .private-info {
   color: var(--gold);
@@ -355,6 +495,7 @@ header {
 .end-panel::after {
   content: "";
   position: absolute;
+  z-index: -1;
   width: 55%;
   height: 2px;
   background: linear-gradient(90deg, transparent, #e62b42);
@@ -384,6 +525,76 @@ header {
   justify-content: center;
   gap: 10px;
   margin-top: 20px;
+}
+.role-reveal-list {
+  margin-top: 22px;
+  border-top: 1px solid #bd2c3d55;
+  padding-top: 18px;
+}
+.role-reveal-list table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+}
+.reveal-entry {
+  animation: reveal-slide 0.4s ease-out both;
+  animation-delay: calc(var(--index) * 0.08s);
+}
+.reveal-entry td {
+  padding: 10px 8px;
+  background: #15111c;
+  border: 1px solid #342b43;
+}
+.reveal-entry td:first-child {
+  width: 30px;
+  text-align: center;
+  border-radius: 8px 0 0 8px;
+  border-right: none;
+}
+.reveal-entry td:last-child {
+  border-radius: 0 8px 8px 0;
+  border-left: none;
+  text-align: center;
+  white-space: nowrap;
+}
+.reveal-entry td:nth-child(2) {
+  border-right: none;
+}
+.reveal-entry td:nth-child(3) {
+  border-left: none;
+  border-right: none;
+}
+@keyframes reveal-slide {
+  0% { opacity: 0; transform: translateX(-20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.reveal-icon {
+  font-size: 1.1rem;
+}
+.reveal-role {
+  color: #e9d9b9;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.reveal-name {
+  color: var(--muted);
+  width: 100%;
+}
+.reveal-status {
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 20px;
+  text-align: center;
+}
+.reveal-status.alive {
+  color: var(--green);
+  background: #55d39a18;
+  border: 1px solid #55d39a44;
+}
+.reveal-status.dead {
+  color: var(--red);
+  background: #ef315718;
+  border: 1px solid #ef315744;
 }
 .role-config {
   display: grid;
@@ -599,11 +810,18 @@ header {
     radial-gradient(circle at 20% 10%, #6f4b2738, transparent 33%),
     #170f0b;
   box-shadow: -28px 0 75px #000;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
   transform: translateX(105%);
-  transition: transform 0.32s ease;
+  transition: visibility 0s 0.32s, opacity 0.32s ease, transform 0.32s ease;
 }
 .role-book.open {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
   transform: translateX(0);
+  transition: visibility 0s 0s, opacity 0.32s ease, transform 0.32s ease;
 }
 .role-book::before {
   content: "";
@@ -689,9 +907,23 @@ header {
   font-size: 0.74rem;
   line-height: 1.55;
 }
+.book-flavor {
+  display: block;
+  margin-top: 6px;
+  color: #d7bd86;
+  font-style: italic;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  border-left: 2px solid #84623955;
+  padding-left: 8px;
+}
+.book-team.demon .book-flavor {
+  color: #ff7a8a;
+  border-left-color: #8f283355;
+}
 .phase-clock {
   min-width: 76px;
-  padding: 8px 10px;
+  padding: 8px 10px 4px;
   border: 1px solid #6f2831;
   background: #17090c;
   color: #fff;
@@ -701,10 +933,27 @@ header {
   letter-spacing: 0.08em;
   box-shadow: inset 0 0 18px #ba142326;
 }
-.phase-clock.urgent {
+#clock-digits {
+  display: block;
+}
+.phase-clock.urgent #clock-digits {
   color: #ff5367;
-  border-color: #e02a40;
   animation: clock-pulse 0.8s infinite alternate;
+}
+#timer-track {
+  width: 100%;
+  height: 3px;
+  margin-top: 6px;
+  background: #2a141b;
+  border-radius: 2px;
+  overflow: hidden;
+}
+#timer-fill {
+  width: 100%;
+  height: 100%;
+  background: var(--green);
+  border-radius: 2px;
+  transition: width 0.25s linear, background 0.4s;
 }
 body[data-phase="defense"] .action-panel {
   border-color: #d09a38;
@@ -752,7 +1001,6 @@ body[data-phase="defense"] .action-panel {
 .action-panel {
   grid-area: action;
   min-height: 250px;
-  border-color: #a72a38;
 }
 .action-panel h2 {
   font-size: 1.65rem;
@@ -934,12 +1182,43 @@ body[data-phase="defense"] .action-panel {
   background: #55d39a;
   box-shadow: 0 0 10px #55d39a;
 }
+.player.leading {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 16px #ef315766, inset 0 0 0 1px var(--red);
+}
+.player-group {
+  margin-bottom: 8px;
+}
+.player-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px 8px;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid #2b2435;
+}
+.player-group-header .count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: #2a1f2e;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--muted);
+}
 .player.me {
   border-color: #d3a64f;
   background: linear-gradient(110deg, #21160c, #0c0807);
 }
 .player.dead {
-  opacity: 0.52;
+  opacity: 0.55;
   text-decoration: none;
   filter: grayscale(1);
 }
@@ -1010,6 +1289,95 @@ body[data-phase="defense"] .action-panel {
 .banner {
   border-radius: 3px;
   box-shadow: 0 0 45px #dfa62930;
+}
+
+/* Glitch / static effects */
+.glitch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0;
+}
+.glitch-overlay.active {
+  animation: glitch-burst 0.4s steps(3) forwards;
+}
+.glitch-overlay.ambient {
+  animation: glitch-flash 0.2s ease-out forwards;
+}
+.noise-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  transition: opacity 0.1s;
+}
+.role-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+}
+.blood-splatter {
+  position: fixed;
+  inset: 0;
+  z-index: 9996;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(ellipse 140% 80% at 5% 95%, #8b0000b0 0%, transparent 55%),
+    radial-gradient(ellipse 80% 130% at 95% 5%, #6b0000b0 0%, transparent 50%),
+    radial-gradient(ellipse 100% 60% at 50% 0%, #7a0000b0 0%, transparent 50%),
+    radial-gradient(ellipse 60% 100% at 0% 50%, #5f0000a0 0%, transparent 45%),
+    radial-gradient(ellipse 60% 100% at 100% 50%, #5f0000a0 0%, transparent 45%);
+  transition: opacity 0.25s;
+}
+.blood-splatter.show {
+  opacity: 1;
+  animation: blood-drip 5s ease-out forwards;
+}
+body[data-phase="night"]::before {
+  animation: vignette-pulse-night 3s ease-in-out infinite alternate;
+}
+@keyframes glitch-burst {
+  0%   { opacity: 0.9; transform: translate(0) scaleX(1); background: #000; }
+  12%  { opacity: 0.7; transform: translate(-6px, 2px) scaleX(0.97); background: #f003; }
+  28%  { opacity: 0.85; transform: translate(5px, -4px) scaleX(1.03); background: #0f03; }
+  45%  { opacity: 0.5; transform: translate(-10px, 6px) skewX(2deg); background: #000; }
+  65%  { opacity: 0.75; transform: translate(7px, -3px) skewX(-1.5deg); background: #f0f3; }
+  85%  { opacity: 0.3; transform: translate(-4px, 2px); background: #000; }
+  100% { opacity: 0; transform: translate(0) scaleX(1); background: transparent; }
+}
+@keyframes glitch-flash {
+  0%   { opacity: 0.5; background: #000; }
+  30%  { opacity: 0.2; background: #fff1; }
+  60%  { opacity: 0.4; background: #000; }
+  100% { opacity: 0; background: transparent; }
+}
+@keyframes rgb-shift {
+  0%   { text-shadow: 4px 0 #f00, -4px 0 #0ff; }
+  20%  { text-shadow: -3px 0 #f00, 3px 0 #0ff; }
+  40%  { text-shadow: 5px 0 #f00, -5px 0 #0ff; }
+  60%  { text-shadow: -4px 0 #f00, 4px 0 #0ff; }
+  80%  { text-shadow: 2px 0 #f00, -2px 0 #0ff; }
+  100% { text-shadow: 0 0 transparent; }
+}
+@keyframes blood-drip {
+  0%   { opacity: 0.7; }
+  15%  { opacity: 0.8; }
+  60%  { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+@keyframes vignette-pulse-night {
+  0%   { opacity: 0.75; }
+  100% { opacity: 1; }
 }
 
 /* Cinematic state effects */
@@ -1097,6 +1465,7 @@ body[data-phase="defense"] .action-panel {
   font-size: clamp(8rem, 22vw, 18rem);
   line-height: 0.55;
   text-shadow: 0 0 45px #ff1733;
+  animation: rgb-shift 0.4s ease-out 0.1s 1;
 }
 .death-scene span {
   margin-top: 28px;
@@ -1123,6 +1492,9 @@ body[data-phase="night"] .game-header::after {
 }
 .death-shake main {
   animation: screen-shake 0.65s both;
+}
+.death-shake {
+  overflow: hidden;
 }
 @keyframes phase-fade {
   0% { opacity: 0; filter: blur(9px); }
@@ -1151,6 +1523,192 @@ body[data-phase="night"] .game-header::after {
   from { filter: saturate(0.82) brightness(0.82); }
   to { filter: saturate(1.2) brightness(1.08); }
 }
+@keyframes role-appear {
+  0% { opacity: 0; transform: scale(0.3) translateY(30px); filter: blur(10px); }
+  50% { opacity: 1; transform: scale(1.12); filter: blur(0); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes toast-in {
+  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-out {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-10px) scale(0.95); }
+}
+.role-reveal {
+  animation: role-appear 0.6s ease-out;
+}
+.is-demon#role-name {
+  color: #ff1744 !important;
+  text-shadow: 0 0 30px #ff174488, 0 0 60px #ff174444;
+}
+.toast-container {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  pointer-events: none;
+}
+.toast {
+  padding: 10px 22px;
+  border: 1px solid var(--gold);
+  background: #20170bc9;
+  border-radius: 4px;
+  color: #f3e2b5;
+  font-size: 0.82rem;
+  font-weight: 600;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 24px #000b;
+  animation: toast-in 0.25s ease-out;
+  white-space: nowrap;
+}
+.toast.out {
+  animation: toast-out 0.2s ease-in forwards;
+}
+.toast.demon {
+  border-color: var(--red);
+  background: #1f0a0ec9;
+  color: #ff8a9b;
+}
+.toast.success {
+  border-color: var(--green);
+  background: #0a1f13c9;
+  color: #8ddfb3;
+}
+
+/* ---- Vote cast pop ---- */
+@keyframes vote-pop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.08); box-shadow: 0 0 30px var(--gold); }
+  100% { transform: scale(1); }
+}
+.player.vote-pop {
+  animation: vote-pop 0.4s ease-out;
+  border-color: var(--gold) !important;
+}
+
+/* ---- Action submit flash ---- */
+@keyframes role-flash {
+  0% { filter: brightness(1); }
+  20% { filter: brightness(1.6); }
+  100% { filter: brightness(1); }
+}
+.identity.action-flash {
+  animation: role-flash 0.5s ease-out;
+}
+
+/* ---- Night waiting dots ---- */
+.waiting-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-left: 6px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.waiting-dot.night-dot {
+  background: #2a1e30;
+  opacity: 0.5;
+}
+
+/* ---- Log entry slide-in ---- */
+@keyframes log-slide {
+  0% { opacity: 0; transform: translateX(-15px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.log {
+  animation: log-slide 0.25s ease-out;
+}
+
+/* ---- Timer drama 10s ---- */
+body.urgent-10 #phase-clock {
+  box-shadow: 0 0 40px #ef315766, inset 0 0 30px #ef315744;
+  animation: clock-urgent-10 0.5s ease-in-out infinite alternate;
+}
+@keyframes clock-urgent-10 {
+  0% { box-shadow: 0 0 40px #ef315766, inset 0 0 30px #ef315744; }
+  100% { box-shadow: 0 0 60px #ef3157, inset 0 0 40px #ef3157; }
+}
+body.urgent-10 #clock-digits {
+  color: var(--red);
+  animation: clock-digits-10 0.3s ease-in-out infinite alternate;
+}
+@keyframes clock-digits-10 {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+/* ---- Death card flip ---- */
+.player.dead {
+  transition: opacity 0.5s, transform 0.5s;
+}
+.player.dead-animate {
+  animation: card-die 0.6s ease-out forwards;
+}
+@keyframes card-die {
+  0% { transform: perspective(400px) rotateY(0deg); opacity: 1; }
+  40% { transform: perspective(400px) rotateY(30deg); opacity: 0.8; }
+  100% { transform: perspective(400px) rotateY(0deg); opacity: 0.46; }
+}
+.player.skull-overlay {
+  position: relative;
+}
+.player.skull-overlay::after {
+  content: "☠";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  opacity: 0.6;
+  animation: skull-appear 0.4s ease-out;
+}
+@keyframes skull-appear {
+  0% { opacity: 0; transform: translateY(-50%) scale(0); }
+  100% { opacity: 0.6; transform: translateY(-50%) scale(1); }
+}
+
+/* ---- Vote count pop ---- */
+.vote-stack b {
+  animation: count-pop 0.3s ease-out;
+}
+@keyframes count-pop {
+  0% { transform: scale(0.5); opacity: 0.3; }
+  60% { transform: scale(1.3); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ---- Confetti burst ---- */
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  top: -10px;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+/* ---- Ambient night particles ---- */
+body[data-phase="night"] .role-particles {
+  opacity: 0.35;
+}
+
 @media (max-width: 760px) {
   .game-header {
     top: 5px;
@@ -1196,6 +1754,15 @@ body[data-phase="night"] .game-header::after {
   }
   .players {
     grid-template-columns: 1fr;
+  }
+  .action-panel {
+    position: sticky;
+    bottom: 0;
+    z-index: 15;
+    margin-bottom: 0;
+  }
+  .game-grid {
+    padding-bottom: 0;
   }
   .panel {
     padding: 18px;

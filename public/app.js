@@ -9,20 +9,44 @@ let musicEnabled = localStorage.getItem("quy-liem-music-muted") !== "true";
 let effectTimer = null;
 let clockTimer = null;
 let roleBookOpen = false;
+let previousRole = null;
+let toastTimer = null;
+let ambientGlitchTimer = null;
 $("background-music").volume = 0.3;
 $("death-scream").volume = 0.78;
 
-const phaseNames = { lobby: "Sảnh chờ", night: "Mọi người đi ngủ", day: "Đang bỏ phiếu", defense: "Thời gian phản biện", hunter: "Phát súng cuối", ended: "Trò chơi kết thúc" };
+const phaseNames = {
+  lobby: "Sảnh chờ",
+  night: "Mọi người đi ngủ",
+  day: "Đang bỏ phiếu",
+  defense: "Thời gian phản biện",
+  hunter: "Phát súng cuối",
+  ended: "Trò chơi kết thúc",
+};
 const teamNames = { demon: "Phe Quỷ Liếm", village: "Phe khu phố" };
+const TRANSITION_FLAVOR = {
+  night: { title: "Mọi người đi ngủ", sub: (day) => `Đêm ${day}. Bóng tối ôm trọn khu phố...` },
+  day: { title: "Đang bỏ phiếu", sub: (day) => `${day === 1 ? "Bình minh đầu tiên. Ai sẽ sống, ai sẽ chết?" : `Ngày ${day}. Ai sống? Ai chết?`}` },
+  defense: { title: "Thời gian phản biện", sub: () => "Người bị buộc tội đứng trước đám đông. Lời cuối cùng..." },
+  hunter: { title: "Phát súng cuối", sub: () => "Một người sắp bị kéo xuống mồ..." },
+};
 
-function showError(id, message = "") { $(id).textContent = message; }
-function enterRoom() { $("welcome").classList.add("hidden"); $("game").classList.remove("hidden"); }
+function showError(id, message = "") {
+  $(id).textContent = message;
+}
+function enterRoom() {
+  $("welcome").classList.add("hidden");
+  $("game").classList.remove("hidden");
+}
 function unlockAudio() {
   if (soundEnabled) {
     audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
     if (audioContext.state === "suspended") audioContext.resume();
   }
-  if (musicEnabled) $("background-music").play().catch(() => {});
+  if (musicEnabled)
+    $("background-music")
+      .play()
+      .catch(() => {});
 }
 document.addEventListener("pointerdown", unlockAudio, { passive: true });
 
@@ -35,44 +59,69 @@ $("sound-toggle").onclick = () => {
 $("music-toggle").onclick = () => {
   musicEnabled = !musicEnabled;
   localStorage.setItem("quy-liem-music-muted", String(!musicEnabled));
-  if (musicEnabled) $("background-music").play().catch(() => {});
+  if (musicEnabled)
+    $("background-music")
+      .play()
+      .catch(() => {});
   else $("background-music").pause();
   renderSoundToggle();
 };
 
 function renderSoundToggle() {
-  $("sound-toggle").textContent = soundEnabled ? "Âm thanh: Bật" : "Âm thanh: Tắt";
+  $("sound-toggle").textContent = soundEnabled
+    ? "Âm thanh: Bật"
+    : "Âm thanh: Tắt";
   $("sound-toggle").classList.toggle("muted", !soundEnabled);
-  $("music-toggle").textContent = musicEnabled ? "Nhạc nền: Bật" : "Nhạc nền: Tắt";
+  $("music-toggle").textContent = musicEnabled
+    ? "Nhạc nền: Bật"
+    : "Nhạc nền: Tắt";
   $("music-toggle").classList.toggle("muted", !musicEnabled);
 }
 function rememberSession(res) {
-  localStorage.setItem("quy-liem-session", JSON.stringify({ code: res.code, token: res.token }));
+  localStorage.setItem(
+    "quy-liem-session",
+    JSON.stringify({ code: res.code, token: res.token }),
+  );
 }
 
-$("create").onclick = () => socket.emit("create-room", { name: $("name").value }, (res) => {
-  if (res.error) return showError("welcome-error", res.error);
-  rememberSession(res);
-  enterRoom();
-});
-$("join").onclick = () => socket.emit("join-room", { name: $("name").value, code: $("code").value }, (res) => {
-  if (res.error) return showError("welcome-error", res.error);
-  rememberSession(res);
-  enterRoom();
-});
+$("create").onclick = () =>
+  socket.emit("create-room", { name: $("name").value }, (res) => {
+    if (res.error) return showError("welcome-error", res.error);
+    rememberSession(res);
+    enterRoom();
+  });
+$("join").onclick = () =>
+  socket.emit(
+    "join-room",
+    { name: $("name").value, code: $("code").value },
+    (res) => {
+      if (res.error) return showError("welcome-error", res.error);
+      rememberSession(res);
+      enterRoom();
+    },
+  );
 $("copy-code").onclick = async () => {
   await navigator.clipboard.writeText(state.code);
   $("copy-code").textContent = "ĐÃ COPY";
-  setTimeout(() => { $("copy-code").textContent = state.code; }, 900);
+  setTimeout(() => {
+    $("copy-code").textContent = state.code;
+  }, 900);
 };
-$("start").onclick = () => socket.emit("start-game", {}, (res) => showError("host-error", res.error));
-$("replay-room").onclick = () => socket.emit("replay-room", {}, (res) => showError("end-error", res.error));
+$("start").onclick = () =>
+  socket.emit("start-game", {}, (res) => showError("host-error", res.error));
+$("replay-room").onclick = () =>
+  socket.emit("replay-room", {}, (res) => showError("end-error", res.error));
 $("new-room").onclick = () => {
   localStorage.removeItem("quy-liem-session");
   window.location.reload();
 };
 $("cancel-room").onclick = () => {
-  if (!window.confirm("Hủy phòng hiện tại? Tất cả người chơi sẽ bị đưa về màn hình chính.")) return;
+  if (
+    !window.confirm(
+      "Hủy phòng hiện tại? Tất cả người chơi sẽ bị đưa về màn hình chính.",
+    )
+  )
+    return;
   socket.emit("cancel-room", {}, (res) => {
     if (res?.error) showError("host-error", res.error);
   });
@@ -100,20 +149,34 @@ function toggleRoleBook(force) {
 
 socket.on("state", (next) => {
   const previous = state;
-  const actionChanged = state?.action?.type !== next.action?.type || state?.phase !== next.phase;
+  const actionChanged =
+    state?.action?.type !== next.action?.type || state?.phase !== next.phase;
   state = next;
-  if (actionChanged) { selected = []; witchMode = null; }
+  if (actionChanged) {
+    selected = [];
+    witchMode = null;
+  }
+  toggleRoleBook(false);
   render();
+  setRoleParticles(next.me?.role, next.phase);
   runStateEffects(previous, next);
+  if (next.status === "playing" && (!previous || previous.status !== "playing"))
+    startAmbientGlitch();
+  if (next.status === "ended" || next.status === "lobby") {
+    stopAmbientGlitch();
+    roleParticles.stop();
+  }
 });
 socket.on("connect", () => {
   const saved = JSON.parse(localStorage.getItem("quy-liem-session") || "null");
-  if (saved) socket.emit("resume", saved, (res) => {
-    if (res.error) localStorage.removeItem("quy-liem-session");
-    else enterRoom();
-  });
+  if (saved)
+    socket.emit("resume", saved, (res) => {
+      if (res.error) localStorage.removeItem("quy-liem-session");
+      else enterRoom();
+    });
 });
 socket.on("room-closed", ({ reason }) => {
+  stopAmbientGlitch();
   localStorage.removeItem("quy-liem-session");
   state = null;
   selected = [];
@@ -126,11 +189,17 @@ socket.on("room-closed", ({ reason }) => {
 function render() {
   enterRoom();
   document.body.dataset.phase = state.phase;
+  document.body.dataset.role = state.me?.role || "";
   renderSoundToggle();
-  $("leave-room").classList.toggle("hidden", state.isHost || !["lobby", "ended"].includes(state.status));
+  $("leave-room").classList.toggle(
+    "hidden",
+    state.isHost || !["lobby", "ended"].includes(state.status),
+  );
   $("copy-code").textContent = state.code;
   $("phase-label").textContent = phaseNames[state.phase] || state.phase;
-  $("day-label").textContent = state.day ? `${state.phase === "night" ? "Đêm" : "Ngày"} ${state.day}` : "";
+  $("day-label").textContent = state.day
+    ? `${state.phase === "night" ? "Đêm" : "Ngày"} ${state.day}`
+    : "";
   renderIdentity();
   renderPlayers();
   renderAction();
@@ -153,16 +222,25 @@ function render() {
 
 function renderRoleBook() {
   const labels = { demon: "Phe Quỷ Liếm", village: "Phe khu phố" };
-  $("role-book-list").innerHTML = ["demon", "village"].map((team) => {
-    const roles = Object.entries(state.roleInfo).filter(([, info]) => info.team === team);
-    return `<section class="book-team ${team}">
+  $("role-book-list").innerHTML = ["demon", "village"]
+    .map((team) => {
+      const roles = Object.entries(state.roleInfo).filter(
+        ([, info]) => info.team === team,
+      );
+      return `<section class="book-team ${team}">
       <h3>${labels[team]}</h3>
-      ${roles.map(([key, info]) => `<article class="book-role">
-        <span class="book-mark">${["demon", "junior"].includes(key) ? "Q" : "V"}</span>
-        <div><strong>${escapeHtml(info.name)}</strong><p>${escapeHtml(info.description)}</p></div>
-      </article>`).join("")}
+      ${roles
+        .map(
+          ([key, info]) => `<article class="book-role">
+        <span class="book-mark">${info.icon || "•"}</span>
+        <div><strong>${escapeHtml(info.name)}</strong><p>${escapeHtml(info.description)}</p>
+        ${info.flavor ? `<em class="book-flavor">${escapeHtml(info.flavor)}</em>` : ""}</div>
+      </article>`,
+        )
+        .join("")}
     </section>`;
-  }).join("");
+    })
+    .join("");
 }
 
 function renderEndPanel() {
@@ -170,20 +248,59 @@ function renderEndPanel() {
   if (state.status !== "ended") return panel.classList.add("hidden");
   panel.classList.remove("hidden");
   $("end-title").textContent = `${teamNames[state.winner]} chiến thắng`;
-  $("end-help").textContent = state.isHost ? "Bạn có thể giữ nguyên mọi người và mở một ván mới." : "Chờ chủ phòng mở lại ván hoặc tạo một phòng mới.";
+  $("end-help").textContent = state.isHost
+    ? "Bạn có thể giữ nguyên mọi người và mở một ván mới."
+    : "Chờ chủ phòng mở lại ván hoặc tạo một phòng mới.";
   $("replay-room").classList.toggle("hidden", !state.isHost);
   showError("end-error");
+  const teamOrder = state.winner === "village" ? ["village", "demon"] : ["demon", "village"];
+  const allRoles = [];
+  teamOrder.forEach((team) => {
+    state.players.forEach((p) => {
+      if (p.role && state.roleInfo[p.role]?.team === team) {
+        allRoles.push(p);
+      }
+    });
+  });
+  $("role-reveal-list").innerHTML = allRoles.length
+    ? `<table>${allRoles
+        .map(
+          (p, i) =>
+            `<tr class="reveal-entry" style="--index:${i}">
+          <td class="reveal-icon">${state.roleInfo[p.role].icon || "•"}</td>
+          <td class="reveal-role">${escapeHtml(state.roleInfo[p.role].name)}</td>
+          <td class="reveal-name">${escapeHtml(p.name)}</td>
+          <td class="reveal-status ${p.alive ? "alive" : "dead"}">${p.alive ? "Còn sống" : "Đã chết"}</td>
+        </tr>`,
+        )
+        .join("")}</table>`
+    : "<p class='muted'>Không có dữ liệu vai trò.</p>";
 }
 
 function renderClock() {
   clearInterval(clockTimer);
   const clock = $("phase-clock");
-  if (!state.phaseEndsAt) return clock.classList.add("hidden");
+  const digits = $("clock-digits");
+  const fill = $("timer-fill");
+  if (!state.phaseEndsAt || !state.phaseStartedAt) {
+    document.body.classList.remove("urgent-10");
+    return clock.classList.add("hidden");
+  }
+  const total = state.phaseEndsAt - state.phaseStartedAt;
   const update = () => {
     const remaining = Math.max(0, state.phaseEndsAt - Date.now());
     const seconds = Math.ceil(remaining / 1000);
-    clock.textContent = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+    digits.textContent = `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
     clock.classList.toggle("urgent", seconds <= 30);
+    document.body.classList.toggle("urgent-10", seconds <= 10);
+    const pct = total > 0 ? (remaining / total) * 100 : 0;
+    fill.style.width = pct + "%";
+    fill.style.background =
+      seconds <= 15
+        ? "var(--red)"
+        : seconds <= 35
+          ? "var(--gold)"
+          : "var(--green)";
   };
   clock.classList.remove("hidden");
   update();
@@ -196,20 +313,48 @@ function runStateEffects(previous, next) {
     const before = previous.players.find((old) => old.id === player.id);
     return before?.alive && !player.alive;
   });
-  if (newlyDead.length) showDeathScene(newlyDead.map((player) => player.name));
-  if (previous.phase !== next.phase && !newlyDead.length) showPhaseTransition(next);
-  if (previous.status !== "ended" && next.status === "ended") playWinSound(next.winner);
+  if (newlyDead.length) {
+    showDeathScene(newlyDead.map((player) => player.name));
+    newlyDead.forEach((player) => {
+      const el = document.querySelector(`.player[data-id="${player.id}"]`);
+      if (el) {
+        el.classList.add("dead-animate");
+        setTimeout(() => el.classList.add("skull-overlay"), 400);
+      }
+    });
+  }
+  if (previous.phase !== next.phase && !newlyDead.length) {
+    showPhaseTransition(next);
+    if (next.phase === "night" || next.phase === "day") {
+      triggerGlitch();
+      triggerNoise(400);
+    }
+  }
+  if (previous.status !== "ended" && next.status === "ended") {
+    playWinSound(next.winner);
+    triggerGlitch();
+    triggerNoise(700);
+    showConfetti(next.winner);
+  }
+  if (previous.phase !== "night" && next.phase === "night") {
+    roleParticles.setRole(next.me?.role, "night");
+  }
 }
 
 function showPhaseTransition(next) {
-  if (!["night", "day", "hunter"].includes(next.phase)) return;
+  if (!["night", "day", "defense", "hunter"].includes(next.phase)) return;
   const overlay = $("phase-transition");
-  $("transition-title").textContent = phaseNames[next.phase];
-  $("transition-subtitle").textContent = next.phase === "night" ? `Đêm ${next.day} bắt đầu` : next.phase === "day" ? `Ngày ${next.day} bắt đầu` : "Một người sắp bị kéo xuống mồ";
+  const flavor = TRANSITION_FLAVOR[next.phase] || TRANSITION_FLAVOR.day;
+  $("transition-title").textContent = flavor.title;
+  $("transition-subtitle").textContent = flavor.sub(next.day || 1);
   overlay.className = `cinematic-overlay show ${next.phase}`;
   playPhaseSound(next.phase);
+  if (next.phase === "defense") playDefenseSound();
   clearTimeout(effectTimer);
-  effectTimer = setTimeout(() => overlay.className = "cinematic-overlay", 2200);
+  effectTimer = setTimeout(
+    () => (overlay.className = "cinematic-overlay"),
+    2200,
+  );
 }
 
 function showDeathScene(names) {
@@ -220,11 +365,105 @@ function showDeathScene(names) {
   scene.classList.add("show");
   document.body.classList.add("death-shake");
   playDeathSound();
+  triggerGlitch();
+  triggerNoise(500);
+  $("blood-splatter").classList.add("show");
   setTimeout(() => document.body.classList.remove("death-shake"), 750);
-  setTimeout(() => scene.classList.remove("show"), 3000);
+  setTimeout(() => {
+    scene.classList.remove("show");
+    $("blood-splatter").classList.remove("show");
+  }, 3000);
 }
 
-function tone(frequency, start, duration, type = "sine", volume = 0.08, destination = null) {
+function showConfetti(winner) {
+  const colors = winner === "village" ? ["#e4b45b", "#55d39a", "#f4eff8"] : ["#ef3157", "#ff6d00", "#d50000"];
+  const container = document.createElement("div");
+  container.className = "confetti-container";
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti-piece";
+    piece.style.left = Math.random() * 100 + "%";
+    piece.style.width = (4 + Math.random() * 6) + "px";
+    piece.style.height = (4 + Math.random() * 6) + "px";
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+    piece.style.animationDuration = (2 + Math.random() * 3) + "s";
+    piece.style.animationDelay = Math.random() * 1.5 + "s";
+    container.appendChild(piece);
+  }
+  document.body.appendChild(container);
+  setTimeout(() => container.remove(), 6000);
+}
+
+function triggerGlitch() {
+  const overlay = $("#glitch-overlay");
+  overlay.classList.remove("active");
+  void overlay.offsetWidth;
+  overlay.classList.add("active");
+  setTimeout(() => overlay.classList.remove("active"), 450);
+}
+
+function startAmbientGlitch() {
+  stopAmbientGlitch();
+  function schedule() {
+    const delay = 3000 + Math.random() * 5000;
+    ambientGlitchTimer = setTimeout(() => {
+      if (!state || state.status !== "playing") return;
+      const overlay = $("#glitch-overlay");
+      overlay.classList.remove("ambient");
+      void overlay.offsetWidth;
+      overlay.classList.add("ambient");
+      setTimeout(() => overlay.classList.remove("ambient"), 200);
+      schedule();
+    }, delay);
+  }
+  schedule();
+}
+
+function stopAmbientGlitch() {
+  if (ambientGlitchTimer) clearTimeout(ambientGlitchTimer);
+  ambientGlitchTimer = null;
+}
+
+function triggerNoise(duration = 600) {
+  const canvas = $("#noise-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.opacity = "1";
+  let frames = Math.ceil(duration / 50);
+  function drawFrame() {
+    if (frames <= 0) {
+      canvas.style.opacity = "0";
+      return;
+    }
+    const imgData = ctx.createImageData(w, h);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const v = Math.random() * 255;
+      data[i] = v;
+      data[i + 1] = v;
+      data[i + 2] = v;
+      data[i + 3] = Math.random() > 0.25 ? 22 : 0;
+    }
+    ctx.putImageData(imgData, 0, 0);
+    frames--;
+    setTimeout(drawFrame, 50);
+  }
+  drawFrame();
+}
+
+function tone(
+  frequency,
+  start,
+  duration,
+  type = "sine",
+  volume = 0.08,
+  destination = null,
+) {
   if (!soundEnabled || !audioContext) return;
   const oscillator = audioContext.createOscillator();
   const gain = audioContext.createGain();
@@ -240,9 +479,14 @@ function tone(frequency, start, duration, type = "sine", volume = 0.08, destinat
 
 function noise(start, duration, volume = 0.04) {
   if (!soundEnabled || !audioContext) return;
-  const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+  const buffer = audioContext.createBuffer(
+    1,
+    audioContext.sampleRate * duration,
+    audioContext.sampleRate,
+  );
   const data = buffer.getChannelData(0);
-  for (let index = 0; index < data.length; index += 1) data[index] = Math.random() * 2 - 1;
+  for (let index = 0; index < data.length; index += 1)
+    data[index] = Math.random() * 2 - 1;
   const source = audioContext.createBufferSource();
   const filter = audioContext.createBiquadFilter();
   const gain = audioContext.createGain();
@@ -278,46 +522,157 @@ function playWinSound(winner) {
   if (!soundEnabled || !audioContext) return;
   const now = audioContext.currentTime;
   const notes = winner === "village" ? [220, 277, 330] : [110, 92, 73];
-  notes.forEach((note, index) => tone(note, now + index * 0.22, 0.9, "triangle", 0.08));
+  notes.forEach((note, index) =>
+    tone(note, now + index * 0.22, 0.9, "triangle", 0.08),
+  );
+}
+
+function playVoteSound() {
+  if (!soundEnabled || !audioContext) return;
+  const now = audioContext.currentTime;
+  noise(now, 0.06, 0.02);
+  tone(660, now, 0.04, "square", 0.015);
+}
+
+function playDefenseSound() {
+  if (!soundEnabled || !audioContext) return;
+  const now = audioContext.currentTime;
+  tone(55, now, 0.8, "sawtooth", 0.03);
+  tone(110, now + 0.1, 0.5, "triangle", 0.02);
+}
+
+function showToast(message, type = "") {
+  clearTimeout(toastTimer);
+  const container = $("toast-container");
+  const el = document.createElement("div");
+  el.className = "toast" + (type ? " " + type : "");
+  el.textContent = message;
+  container.appendChild(el);
+  toastTimer = setTimeout(() => {
+    el.classList.add("out");
+    setTimeout(() => el.remove(), 200);
+  }, 2800);
 }
 
 function renderIdentity() {
   const role = state.me?.role;
-  $("role-name").textContent = role ? state.roleInfo[role].name : "Game chưa bắt đầu";
-  $("role-desc").textContent = state.me?.description || "Chờ chủ phòng bắt đầu trò chơi.";
+  const roleName = $("role-name");
+  const roleDesc = $("role-desc");
+  const roleFlavor = $("role-flavor");
+  if (role) {
+    if (role !== previousRole && previousRole !== undefined) {
+      roleName.className = "role-reveal";
+      roleDesc.className = "role-reveal";
+      roleFlavor.className = "role-reveal";
+      if (state.roleInfo[role].team === "demon")
+        roleName.classList.add("is-demon");
+      setTimeout(() => {
+        roleName.classList.remove("role-reveal", "is-demon");
+        roleDesc.classList.remove("role-reveal");
+        roleFlavor.classList.remove("role-reveal");
+      }, 700);
+    }
+    previousRole = role;
+  } else {
+    roleName.classList.remove("is-demon");
+  }
+  roleName.textContent = role
+    ? `${state.roleInfo[role].icon || ""} ${state.roleInfo[role].name}`
+    : "Game chưa bắt đầu";
+  roleDesc.textContent =
+    state.me?.description || "Chờ chủ phòng bắt đầu trò chơi.";
+  roleFlavor.textContent = state.me?.flavor ? `"${state.me.flavor}"` : "";
   const bits = [];
-  const cupidPair = state.me?.cupidPair?.map((id) => state.players.find((p) => p.id === id)?.name).filter(Boolean);
-  if (state.me?.role === "cupid" && cupidPair?.length === 2) bits.push(`Hai người đã ghép đôi: ${cupidPair.join(" và ")}`);
-  const mates = state.players.filter((p) => p.role && p.id !== state.me?.id && state.roleInfo[p.role]?.team === "demon" && state.roleInfo[role]?.team === "demon");
-  if (mates.length) bits.push(`Đồng đội: ${mates.map((p) => p.name).join(", ")}`);
-  if (state.seerResult) bits.push(`${state.seerResult.targetName}: ${state.seerResult.isDemon ? "LÀ Quỷ Liếm" : "không phải Quỷ Liếm"}`);
-  $("private-info").innerHTML = bits.map((x) => `<p>${escapeHtml(x)}</p>`).join("");
+  const cupidPair = state.me?.cupidPair
+    ?.map((id) => state.players.find((p) => p.id === id)?.name)
+    .filter(Boolean);
+  if (state.me?.role === "cupid" && cupidPair?.length === 2)
+    bits.push(`Hai người đã ghép đôi: ${cupidPair.join(" và ")}`);
+  const mates = state.players.filter(
+    (p) =>
+      p.role &&
+      p.id !== state.me?.id &&
+      state.roleInfo[p.role]?.team === "demon" &&
+      state.roleInfo[role]?.team === "demon",
+  );
+  if (mates.length)
+    bits.push(`Đồng đội: ${mates.map((p) => p.name).join(", ")}`);
+  if (state.seerResult)
+    bits.push(
+      `${state.seerResult.targetName}: ${state.seerResult.isDemon ? "Là Quỷ Liếm" : "không phải Quỷ Liếm"}`,
+    );
+  $("private-info").innerHTML = bits
+    .map((x) => `<p>${escapeHtml(x)}</p>`)
+    .join("");
 }
 
 function renderPlayers() {
-  $("player-count").textContent = `${state.players.filter((p) => p.alive).length}/${state.players.length} còn sống`;
+  $("player-count").textContent =
+    `${state.players.filter((p) => p.alive).length}/${state.players.length} còn sống`;
   const blankVoters = new Set(state.blankVoters || []);
-  $("players").innerHTML = state.players.map((p) => `
-    <div class="player ${p.alive ? "" : "dead"} ${p.id === state.me?.id ? "me" : ""}">
+  const sorted = [...state.players].sort((a, b) => {
+    if (a.alive !== b.alive) return a.alive ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
+  const maxVotes = Math.max(
+    0,
+    ...Object.values(state.votesByTarget || {}).map((v) => v.length),
+  );
+  const leadingIds = maxVotes
+    ? new Set(
+        Object.entries(state.votesByTarget || {})
+          .filter(([, v]) => v.length === maxVotes)
+          .map(([id]) => id),
+      )
+    : new Set();
+  const alivePlayers = sorted.filter((p) => p.alive);
+  const deadPlayers = sorted.filter((p) => !p.alive);
+  const card = (p) => {
+    let dot = "";
+    if (p.alive && state.phase === "night") {
+      dot = `<span class="waiting-dot night-dot"></span>`;
+    }
+    return `
+    <div class="player ${p.alive ? "" : "dead"} ${p.id === state.me?.id ? "me" : ""} ${leadingIds.has(p.id) ? "leading" : ""}" data-id="${p.id}">
       ${renderSigil(p)}
       <div class="player-copy"><strong>${escapeHtml(p.name)}${p.id === state.me?.id ? " (bạn)" : ""}</strong>
       <small>${p.role ? state.roleInfo[p.role].name : p.connected ? (p.alive ? "Còn sống" : "Đã chết") : "Mất kết nối"}</small>
-      </div><span class="status-dot"></span>
+      </div>${dot}<span class="status-dot"></span>
       ${blankVoters.has(p.id) ? '<span class="white-flag" title="Đã bỏ phiếu trắng">⚑</span>' : ""}
       ${renderVotesFor(p.id)}
-    </div>`).join("");
+    </div>`;
+  };
+  $("players").innerHTML = `
+    <div class="player-group">
+      <div class="player-group-header">Còn sống <span class="count">${alivePlayers.length}</span></div>
+      ${alivePlayers.map(card).join("")}
+    </div>
+    ${
+      deadPlayers.length
+        ? `
+    <div class="player-group">
+      <div class="player-group-header">Đã chết <span class="count">${deadPlayers.length}</span></div>
+      ${deadPlayers.map(card).join("")}
+    </div>`
+        : ""
+    }`;
 }
 
 function renderVotesFor(targetId) {
   const voterIds = state.votesByTarget?.[targetId] || [];
   if (!voterIds.length) return "";
-  const voters = voterIds.map((id) => state.players.find((player) => player.id === id)).filter(Boolean);
+  const voters = voterIds
+    .map((id) => state.players.find((player) => player.id === id))
+    .filter(Boolean);
   return `<div class="vote-stack"><b>${voters.length}</b>${voters.map((player) => renderSigil(player, true)).join("")}</div>`;
 }
 
 function renderSigil(player, mini = false) {
-  const index = Math.max(0, state.players.findIndex((candidate) => candidate.id === player.id));
-  const rotation = (index * 47) % 90 - 45;
+  const index = Math.max(
+    0,
+    state.players.findIndex((candidate) => candidate.id === player.id),
+  );
+  const rotation = ((index * 47) % 90) - 45;
   const pattern = index % 5;
   const palette = index % 6;
   return `<span class="player-avatar sigil-${pattern} palette-${palette} ${mini ? "mini" : ""}" style="--r:${rotation}deg" title="${escapeHtml(player.name)}"><i></i></span>`;
@@ -338,7 +693,8 @@ function renderAction() {
   }
   if (action?.type === "withdraw") {
     $("action-title").textContent = action.label;
-    $("action-help").textContent = "Rút phiếu để người đang phản biện có cơ hội sống.";
+    $("action-help").textContent =
+      "Rút phiếu để người đang phản biện có cơ hội sống.";
     $("submit-action").textContent = "Rút phiếu";
     $("submit-action").classList.remove("hidden");
     $("submit-action").onclick = () => submit("withdraw");
@@ -346,24 +702,36 @@ function renderAction() {
   }
   if (!action) {
     if (state.phase === "defense") {
-      $("action-title").textContent = state.me.id === state.accusedId ? "Bạn đang bị buộc tội" : `${state.accusedName} đang phản biện`;
-      $("action-help").textContent = state.me.id === state.accusedId ? "Bạn có 30 giây để thuyết phục khu phố rút phiếu." : "Bạn không bỏ phiếu cho người này nên không cần rút phiếu.";
+      $("action-title").textContent =
+        state.me.id === state.accusedId
+          ? "Bạn đang bị buộc tội"
+          : `${state.accusedName} đang phản biện`;
+      $("action-help").textContent =
+        state.me.id === state.accusedId
+          ? "Bạn có 30 giây để thuyết phục khu phố rút phiếu."
+          : "Bạn không bỏ phiếu cho người này nên không cần rút phiếu.";
     } else if (state.phase === "hunter") {
       $("action-title").textContent = `${state.hunterRevealName} là Lọ Vương`;
       $("action-help").textContent = "Hãy chờ Lọ Vương chọn người chết chung.";
     } else {
-      $("action-title").textContent = state.phase === "lobby" ? "Chờ đủ người" : "Hãy chờ...";
-      $("action-help").textContent = state.phase === "day" ? "Thời gian bỏ phiếu vẫn đang diễn ra." : "Những người có kỹ năng đang hành động.";
+      $("action-title").textContent =
+        state.phase === "lobby" ? "Chờ đủ người" : "Hãy chờ...";
+      $("action-help").textContent =
+        state.phase === "day"
+          ? "Thời gian bỏ phiếu vẫn đang diễn ra."
+          : "Những người có kỹ năng đang hành động.";
     }
     return;
   }
   $("action-title").textContent = action.label;
-  $("action-help").textContent = action.count === 2 ? "Chọn đúng hai người." : "Chạm vào một người để chọn.";
+  $("action-help").textContent =
+    action.count === 2 ? "Chọn đúng hai người." : "Chạm vào một người để chọn.";
   if (action.type === "witch") renderWitch(action);
   else renderTargets(action);
   if (action.allowSkip) {
     $("skip-action").classList.remove("hidden");
-    $("skip-action").textContent = action.type === "vote" ? "Bỏ phiếu trắng" : "Bỏ qua";
+    $("skip-action").textContent =
+      action.type === "vote" ? "Bỏ phiếu trắng" : "Bỏ qua";
     $("skip-action").onclick = () => submit("skip");
   }
 }
@@ -371,21 +739,34 @@ function renderAction() {
 function eligible(action, player) {
   if (!player.alive) return false;
   if (action.exclude?.includes(player.id)) return false;
-  if (action.excludeTeam && player.role && state.roleInfo[player.role]?.team === "demon") return false;
+  if (
+    action.excludeTeam &&
+    player.role &&
+    state.roleInfo[player.role]?.team === "demon"
+  )
+    return false;
   if (action.type === "hunter" && player.id === state.me.id) return false;
   return true;
 }
 
 function renderTargets(action) {
   const choices = state.players.filter((p) => eligible(action, p));
-  $("targets").innerHTML = choices.map((p) => `<button class="target ${selected.includes(p.id) ? "selected" : ""}" data-id="${p.id}">${renderSigil(p, true)}<span><strong>${escapeHtml(p.name)}</strong><small>${p.id === state.me.id ? "Bạn" : "Còn sống"}</small></span></button>`).join("");
-  document.querySelectorAll(".target").forEach((el) => el.onclick = () => {
-    const id = el.dataset.id;
-    if (selected.includes(id)) selected = selected.filter((x) => x !== id);
-    else if (selected.length < action.count) selected.push(id);
-    else selected = [id];
-    renderAction();
-  });
+  $("targets").innerHTML = choices
+    .map(
+      (p) =>
+        `<button class="target ${selected.includes(p.id) ? "selected" : ""}" data-id="${p.id}">${renderSigil(p, true)}<span><strong>${escapeHtml(p.name)}</strong><small>${p.id === state.me.id ? "Bạn" : "Còn sống"}</small></span></button>`,
+    )
+    .join("");
+  document.querySelectorAll(".target").forEach(
+    (el) =>
+      (el.onclick = () => {
+        const id = el.dataset.id;
+        if (selected.includes(id)) selected = selected.filter((x) => x !== id);
+        else if (selected.length < action.count) selected.push(id);
+        else selected = [id];
+        renderAction();
+      }),
+  );
   if (selected.length === action.count) {
     $("submit-action").classList.remove("hidden");
     $("submit-action").onclick = () => submit(null);
@@ -396,15 +777,23 @@ function renderWitch(action) {
   const options = [];
   if (state.witch.save && action.victimId) {
     const victim = state.players.find((p) => p.id === action.victimId);
-    options.push(`<button data-mode="save" class="${witchMode === "save" ? "active" : ""}">Cứu ${escapeHtml(victim?.name || "")}</button>`);
+    options.push(
+      `<button data-mode="save" class="${witchMode === "save" ? "active" : ""}">Cứu ${escapeHtml(victim?.name || "")}</button>`,
+    );
   }
-  if (state.witch.poison) options.push(`<button data-mode="poison" class="${witchMode === "poison" ? "active" : ""}">Dùng bùa hại</button>`);
+  if (state.witch.poison)
+    options.push(
+      `<button data-mode="poison" class="${witchMode === "poison" ? "active" : ""}">Dùng bùa hại</button>`,
+    );
   $("witch-actions").innerHTML = options.join("");
-  document.querySelectorAll("[data-mode]").forEach((el) => el.onclick = () => {
-    witchMode = el.dataset.mode;
-    selected = [];
-    renderAction();
-  });
+  document.querySelectorAll("[data-mode]").forEach(
+    (el) =>
+      (el.onclick = () => {
+        witchMode = el.dataset.mode;
+        selected = [];
+        renderAction();
+      }),
+  );
   if (witchMode === "poison") renderTargets(action);
   if (witchMode === "save") {
     $("submit-action").classList.remove("hidden");
@@ -416,6 +805,27 @@ function submit(mode) {
   socket.emit("act", { targets: selected, mode: mode || witchMode }, (res) => {
     if (res.error) showError("action-error", res.error);
     else {
+      showToast("Đã gửi hành động", "success");
+      if (state.action?.type === "withdraw")
+        showToast("Đã rút phiếu", "success");
+      if (state.action?.type === "vote") {
+        playVoteSound();
+        const targetId = selected[0];
+        if (targetId) {
+          const playerEl = document.querySelector(`.player[data-id="${targetId}"]`);
+          if (playerEl) {
+            playerEl.classList.remove("vote-pop");
+            void playerEl.offsetWidth;
+            playerEl.classList.add("vote-pop");
+          }
+        }
+      }
+      const identity = $("identity");
+      if (identity && state.action?.type !== "vote" && state.action?.type !== "withdraw") {
+        identity.classList.remove("action-flash");
+        void identity.offsetWidth;
+        identity.classList.add("action-flash");
+      }
       selected = [];
       witchMode = null;
     }
@@ -423,33 +833,242 @@ function submit(mode) {
 }
 
 function renderLogs() {
-  $("logs").innerHTML = [...state.logs].reverse().map((log) => `<div class="log ${log.type}">${escapeHtml(log.message)}</div>`).join("");
+  $("logs").innerHTML = [...state.logs]
+    .reverse()
+    .map(
+      (log) => `<div class="log ${log.type}">${escapeHtml(log.message)}</div>`,
+    )
+    .join("");
 }
 
 function renderHost() {
   const panel = $("host-panel");
-  if (!state.isHost || state.status !== "lobby") return panel.classList.add("hidden");
+  if (!state.isHost || state.status !== "lobby")
+    return panel.classList.add("hidden");
   panel.classList.remove("hidden");
-  $("role-config").innerHTML = Object.entries(state.roles).map(([role, count]) => `
-    <label class="role-control"><span>${state.roleInfo[role].name}</span><input type="number" min="0" max="20" data-role="${role}" value="${count}"></label>`).join("");
-  $("role-total").textContent = `Tổng vai: ${Object.values(state.roles).reduce((a, b) => a + b, 0)} / ${state.players.length} người`;
-  document.querySelectorAll("[data-role]").forEach((el) => el.onchange = () => {
-    const roles = { ...state.roles, [el.dataset.role]: Number(el.value) };
-    socket.emit("set-roles", roles);
-  });
+  $("role-config").innerHTML = Object.entries(state.roles)
+    .map(
+      ([role, count]) => `
+    <label class="role-control"><span>${state.roleInfo[role].name}</span><input type="number" min="0" max="20" data-role="${role}" value="${count}"></label>`,
+    )
+    .join("");
+  $("role-total").textContent =
+    `Tổng vai: ${Object.values(state.roles).reduce((a, b) => a + b, 0)} / ${state.players.length} người`;
+  document.querySelectorAll("#role-config [data-role]").forEach(
+    (el) =>
+      (el.onchange = () => {
+        const roles = { ...state.roles, [el.dataset.role]: Number(el.value) };
+        socket.emit("set-roles", roles);
+      }),
+  );
   const kickable = state.players.filter((player) => player.id !== state.me.id);
   $("kick-list").innerHTML = kickable.length
-    ? kickable.map((player) => `<button class="kick-member" data-kick="${player.id}">Kick ${escapeHtml(player.name)}</button>`).join("")
-    : '<small>Chưa có thành viên nào để kick.</small>';
-  document.querySelectorAll("[data-kick]").forEach((button) => button.onclick = () => {
-    const player = state.players.find((candidate) => candidate.id === button.dataset.kick);
-    if (!player || !window.confirm(`Kick ${player.name} khỏi phòng?`)) return;
-    socket.emit("kick-player", { playerId: player.id }, (res) => {
-      if (res?.error) showError("host-error", res.error);
-    });
-  });
+    ? kickable
+        .map(
+          (player) =>
+            `<button class="kick-member" data-kick="${player.id}">Kick ${escapeHtml(player.name)}</button>`,
+        )
+        .join("")
+    : "<small>Chưa có thành viên nào để kick.</small>";
+  document.querySelectorAll("[data-kick]").forEach(
+    (button) =>
+      (button.onclick = () => {
+        const player = state.players.find(
+          (candidate) => candidate.id === button.dataset.kick,
+        );
+        if (!player || !window.confirm(`Kick ${player.name} khỏi phòng?`))
+          return;
+        socket.emit("kick-player", { playerId: player.id }, (res) => {
+          if (res?.error) showError("host-error", res.error);
+        });
+      }),
+  );
+}
+
+const roleParticles = new RoleParticles();
+
+function setRoleParticles(role, phase) {
+  roleParticles.setRole(role, phase);
+}
+document.addEventListener("DOMContentLoaded", () => roleParticles.init());
+
+function RoleParticles() {
+  let canvas, ctx, animId;
+  let currentRole = null;
+  let particles = [];
+  let running = false;
+
+  this.init = () => {
+    canvas = $("#role-particles");
+    if (!canvas) return;
+    ctx = canvas.getContext("2d");
+    resize();
+    window.addEventListener("resize", resize);
+  };
+
+  function resize() {
+    if (!canvas) return;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  this.setRole = (role, phase) => {
+    const key = role || (phase === "night" ? "__night__" : "");
+    if (key === currentRole) return;
+    currentRole = key;
+    particles = [];
+    if (running) { cancelAnimationFrame(animId); running = false; }
+    if (!key || !canvas) return;
+    running = true;
+    loop();
+  };
+
+  function loop() {
+    animId = requestAnimationFrame(loop);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const count = particleCount();
+    while (particles.length < count) particles.push(createParticle());
+    while (particles.length > count) particles.pop();
+    particles.forEach((p) => { update(p); draw(p); });
+  }
+
+  function particleCount() {
+    if (currentRole === "__night__") return 10;
+    if (currentRole === "demon" || currentRole === "junior") return 18;
+    if (currentRole === "witch") return 12;
+    if (currentRole === "cupid") return 10;
+    if (currentRole === "guard") return 8;
+    if (currentRole === "seer") return 10;
+    return 0;
+  }
+
+  function createParticle() {
+    const w = canvas.width, h = canvas.height;
+    const base = {
+      x: Math.random() * w,
+      y: h + 10,
+      size: 2 + Math.random() * 4,
+      speedY: -(0.3 + Math.random() * 0.8),
+      speedX: (Math.random() - 0.5) * 0.5,
+      life: 1,
+      decay: 0.003 + Math.random() * 0.006,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: 0.02 + Math.random() * 0.03,
+    };
+    if (currentRole === "__night__") {
+      base.size = 6 + Math.random() * 10;
+      base.decay = 0.002 + Math.random() * 0.004;
+      base.speedY = -(0.08 + Math.random() * 0.2);
+      base.speedX = (Math.random() - 0.5) * 0.15;
+    } else if (currentRole === "demon" || currentRole === "junior") {
+      base.size = 3 + Math.random() * 5;
+      base.decay = 0.004 + Math.random() * 0.008;
+      base.speedX = (Math.random() - 0.5) * 0.3;
+    } else if (currentRole === "witch") {
+      base.size = 4 + Math.random() * 6;
+      base.decay = 0.002 + Math.random() * 0.004;
+      base.speedY = -(0.15 + Math.random() * 0.4);
+    } else if (currentRole === "cupid") {
+      base.size = 3 + Math.random() * 4;
+      base.decay = 0.005 + Math.random() * 0.007;
+      base.speedX = (Math.random() - 0.5) * 1.2;
+    }
+    return base;
+  }
+
+  function update(p) {
+    p.life -= p.decay;
+    p.x += p.speedX + Math.sin(p.wobble) * 0.5;
+    p.y += p.speedY;
+    p.wobble += p.wobbleSpeed;
+    if (p.life <= 0 || p.y < -20) Object.assign(p, createParticle());
+  }
+
+  function draw(p) {
+    if (!ctx || p.life <= 0) return;
+    const alpha = p.life * 0.6;
+    if (currentRole === "__night__") {
+      ctx.fillStyle = `rgba(10, 5, 10, ${alpha * 0.08})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (currentRole === "demon") {
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+      grad.addColorStop(0, `rgba(255, 23, 68, ${alpha})`);
+      grad.addColorStop(0.5, `rgba(255, 109, 0, ${alpha * 0.5})`);
+      grad.addColorStop(1, `rgba(255, 23, 68, 0)`);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (currentRole === "junior") {
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+      grad.addColorStop(0, `rgba(255, 145, 0, ${alpha})`);
+      grad.addColorStop(0.5, `rgba(255, 109, 0, ${alpha * 0.5})`);
+      grad.addColorStop(1, `rgba(255, 145, 0, 0)`);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (currentRole === "witch") {
+      ctx.strokeStyle = `rgba(105, 240, 174, ${alpha * 0.4})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 0.6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = `rgba(105, 240, 174, ${alpha * 0.15})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (currentRole === "seer") {
+      ctx.shadowColor = `rgba(179, 136, 255, ${alpha * 0.5})`;
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = `rgba(179, 136, 255, ${alpha * 0.2})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    } else if (currentRole === "cupid") {
+      ctx.fillStyle = `rgba(240, 98, 146, ${alpha * 0.35})`;
+      drawHeart(ctx, p.x, p.y, p.size * 0.5);
+    } else if (currentRole === "guard") {
+      ctx.strokeStyle = `rgba(255, 215, 64, ${alpha * 0.3})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 0.5);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, Math.PI, Math.PI * 1.5);
+      ctx.stroke();
+    }
+  }
+
+  function drawHeart(ctx, x, y, size) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + size * 0.3);
+    ctx.bezierCurveTo(x - size, y - size * 0.3, x - size * 0.5, y - size, x, y - size * 0.5);
+    ctx.bezierCurveTo(x + size * 0.5, y - size, x + size, y - size * 0.3, x, y + size * 0.3);
+    ctx.fill();
+  }
+
+  this.stop = () => {
+    if (animId) cancelAnimationFrame(animId);
+    running = false;
+    particles = [];
+    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
 }
 
 function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+  return String(value).replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      })[char],
+  );
 }
