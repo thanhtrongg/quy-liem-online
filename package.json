@@ -8,7 +8,8 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "check": "node --check server.js && node --check public/app.js",
-    "test": "node tests/smoke.js"
+    "test": "node tests/smoke.js",
+    "test:deploy": "node tests/deploy-smoke.js"
   },
   "engines": {
     "node": ">=20"

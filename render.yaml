@@ -3,6 +3,6 @@ services:
     name: quy-liem-online
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm ci
     startCommand: npm start
     healthCheckPath: /health

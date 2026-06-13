@@ -21,9 +21,16 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const PORT = process.env.PORT || 3030;
+const HOST = process.env.HOST || "0.0.0.0";
+const publicDir = path.join(__dirname, "public");
 
-app.use(express.static(path.join(__dirname, "public")));
-app.get("/health", (_req, res) => res.json({ ok: true }));
+app.disable("x-powered-by");
+app.get("/health", (_req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.status(200).json({ ok: true, uptime: Math.round(process.uptime()) });
+});
+app.get("/", (_req, res) => res.sendFile(path.join(publicDir, "index.html")));
+app.use(express.static(publicDir));
 
 io.on("connection", (socket) => {
   socket.on("create-room", ({ name }, callback) => {
@@ -236,4 +243,11 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => console.log(`Quỷ Liếm đang chạy tại http://localhost:${PORT}`));
+server.on("error", (error) => {
+  console.error("Không thể khởi động server:", error);
+  process.exit(1);
+});
+
+server.listen(PORT, HOST, () => {
+  console.log(`Quỷ Liếm đang chạy tại http://${HOST}:${PORT}`);
+});
