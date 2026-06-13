@@ -77,12 +77,25 @@ async function run() {
   assert((await emit(managed[0], "kick-player", { playerId: kickTarget.id })).ok);
   assert((await kicked).reason.includes("kick"));
   assert((await emit(managed[2], "cancel-room", {})).error);
+  assert((await emit(managed[0], "leave-room", {})).error);
   const closedHost = once(managed[0], "room-closed");
   const closedMember = once(managed[2], "room-closed");
   assert((await emit(managed[0], "cancel-room", {})).ok);
   assert((await closedHost).reason.includes("hủy phòng"));
   assert((await closedMember).reason.includes("hủy phòng"));
   managed.forEach((client) => client.disconnect());
+
+  const leaving = await Promise.all([connect(), connect()]);
+  leaving.forEach((client) => client.on("state", (state) => latest.set(client, state)));
+  const leavingRoom = await emit(leaving[0], "create-room", { name: "Leave Host" });
+  assert((await emit(leaving[1], "join-room", { name: "Leaver", code: leavingRoom.code })).ok);
+  await nextState(leaving[0], (state) => state.players.length === 2);
+  const leftEvent = once(leaving[1], "room-closed");
+  const hostAlone = nextState(leaving[0], (state) => state.players.length === 1);
+  assert((await emit(leaving[1], "leave-room", {})).ok);
+  assert((await leftEvent).reason.includes("rời phòng"));
+  await hostAlone;
+  leaving.forEach((client) => client.disconnect());
 
   const clients = await createGroup("Basic", { demon: 1, seer: 0, witch: 0, guard: 0, villager: 3, hunter: 0, cupid: 0, junior: 0 });
   const nightStates = await Promise.all(clients.map((client) => nextState(client, (state) => state.phase === "night")));

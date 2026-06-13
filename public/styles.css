@@ -537,6 +537,16 @@ header {
 .sound-toggle.muted {
   opacity: 0.55;
 }
+.leave-room {
+  border-color: #704047;
+  background: transparent;
+  color: #c9aeb2;
+  font-size: 0.72rem;
+}
+.leave-room:hover {
+  border-color: #d15363;
+  color: #fff;
+}
 .phase-clock {
   min-width: 76px;
   padding: 8px 10px;
@@ -1022,6 +1032,11 @@ body[data-phase="night"] .game-header::after {
   #sound-toggle {
     grid-column: 1 / -1;
     grid-row: 3;
+    padding: 7px;
+  }
+  .leave-room {
+    grid-column: 1 / -1;
+    grid-row: 4;
     padding: 7px;
   }
   .game-grid {

@@ -479,6 +479,24 @@ io.on("connection", (socket) => {
     emitRoom(room);
   });
 
+  socket.on("leave-room", (_, callback) => {
+    const room = rooms.get(socket.data.roomCode);
+    const player = room && getPlayer(room, socket.data.playerId);
+    if (!room || !player) return callback?.({ error: "Bạn không ở trong phòng nào." });
+    if (player.id === room.hostId) return callback?.({ error: "Chủ phòng hãy dùng nút Hủy phòng." });
+    if (!["lobby", "ended"].includes(room.status)) {
+      return callback?.({ error: "Không thể rời phòng khi ván đấu đang diễn ra." });
+    }
+    room.players = room.players.filter((member) => member.id !== player.id);
+    addLog(room, `${player.name} đã rời phòng.`);
+    socket.leave(room.code);
+    socket.data.roomCode = null;
+    socket.data.playerId = null;
+    callback?.({ ok: true });
+    socket.emit("room-closed", { reason: "Bạn đã rời phòng." });
+    emitRoom(room);
+  });
+
   socket.on("cancel-room", (_, callback) => {
     const room = rooms.get(socket.data.roomCode);
     if (!room || room.hostId !== socket.data.playerId) {

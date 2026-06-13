@@ -76,6 +76,12 @@ $("cancel-room").onclick = () => {
     if (res?.error) showError("host-error", res.error);
   });
 };
+$("leave-room").onclick = () => {
+  if (!window.confirm("Rời phòng hiện tại?")) return;
+  socket.emit("leave-room", {}, (res) => {
+    if (res?.error) window.alert(res.error);
+  });
+};
 
 socket.on("state", (next) => {
   const previous = state;
@@ -106,6 +112,7 @@ function render() {
   enterRoom();
   document.body.dataset.phase = state.phase;
   renderSoundToggle();
+  $("leave-room").classList.toggle("hidden", state.isHost || !["lobby", "ended"].includes(state.status));
   $("copy-code").textContent = state.code;
   $("phase-label").textContent = phaseNames[state.phase] || state.phase;
   $("day-label").textContent = state.day ? `${state.phase === "night" ? "Đêm" : "Ngày"} ${state.day}` : "";
@@ -246,7 +253,7 @@ function playWinSound(winner) {
 
 function renderIdentity() {
   const role = state.me?.role;
-  $("role-name").textContent = role ? state.roleInfo[role].name : "Chưa phân vai";
+  $("role-name").textContent = role ? state.roleInfo[role].name : "Game chưa bắt đầu";
   $("role-desc").textContent = state.me?.description || "Chờ chủ phòng bắt đầu trò chơi.";
   const bits = [];
   const cupidPair = state.me?.cupidPair?.map((id) => state.players.find((p) => p.id === id)?.name).filter(Boolean);
