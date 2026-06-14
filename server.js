@@ -5,6 +5,7 @@ const { Server } = require("socket.io");
 
 const { cleanName, shuffle, getPlayer, alive, addLog } = require("./game/utils");
 const { ROLE_INFO } = require("./game/roles");
+const { isValidAvatarId, firstAvailableAvatar, ensureUniqueAvatars } = require("./game/avatars");
 const { rooms, DEFAULT_ROLES, createRoom, resetRoomToLobby, clearPhaseTimer } = require("./game/room");
 const { emitRoom, actionFor, canShareVoice } = require("./game/state");
 const {
@@ -54,8 +55,11 @@ io.on("connection", (socket) => {
     if (!safeName) return callback?.({ error: "Hãy nhập tên của bạn." });
     if (!room || room.status !== "lobby") return callback?.({ error: "Phòng không tồn tại hoặc đã bắt đầu." });
     if (room.players.some((p) => p.name.toLowerCase() === safeName.toLowerCase())) return callback?.({ error: "Tên này đã có trong phòng." });
+    ensureUniqueAvatars(room.players);
+    const avatarId = firstAvailableAvatar(room.players);
+    if (avatarId === null) return callback?.({ error: "Phòng đã hết avatar trống." });
     const { randomUUID } = require("crypto");
-    const player = { id: randomUUID(), socketId: socket.id, token: randomUUID(), name: safeName, alive: true, role: null, loverId: null, connected: true };
+    const player = { id: randomUUID(), socketId: socket.id, token: randomUUID(), name: safeName, avatarId, alive: true, role: null, loverId: null, connected: true };
     room.players.push(player);
     socket.join(room.code);
     socket.data.roomCode = room.code;
@@ -175,6 +179,7 @@ io.on("connection", (socket) => {
     });
     room.villagePowersDisabled = false;
     room.guardLastTarget = null;
+    room.spiritNextKillNight = 3;
     room.cupidPair = [];
     room.priestChurch = [];
     room.hunterRevealId = null;
@@ -186,6 +191,24 @@ io.on("connection", (socket) => {
     room.status = "playing";
     addLog(room, "Trò chơi bắt đầu. Vai đã được phân bí mật.", "phase");
     beginNight(io, room);
+    callback?.({ ok: true });
+    emitRoom(io, room);
+  });
+
+  socket.on("set-avatar", ({ avatarId } = {}, callback) => {
+    const room = rooms.get(socket.data.roomCode);
+    const player = room && getPlayer(room, socket.data.playerId);
+    const normalizedId = Number(avatarId);
+    if (!room || !player || room.status !== "lobby") {
+      return callback?.({ error: "Chỉ có thể đổi avatar khi game chưa bắt đầu." });
+    }
+    if (!isValidAvatarId(normalizedId)) {
+      return callback?.({ error: "Avatar không hợp lệ." });
+    }
+    if (room.players.some((member) => member.id !== player.id && member.avatarId === normalizedId)) {
+      return callback?.({ error: "Avatar này đã có người chọn." });
+    }
+    player.avatarId = normalizedId;
     callback?.({ ok: true });
     emitRoom(io, room);
   });

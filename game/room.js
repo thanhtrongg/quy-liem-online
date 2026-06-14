@@ -1,5 +1,6 @@
 const { randomUUID } = require("crypto");
 const { randomCode } = require("./utils");
+const { firstAvailableAvatar } = require("./avatars");
 
 const DEFAULT_ROLES = { demon: 1, spirit: 0, seer: 0, witch: 0, guard: 0, villager: 1, springroll: 0, hunter: 0, cupid: 0, junior: 0, bisexual: 0, thangngoo: 0, priest: 0 };
 const rooms = new Map();
@@ -34,7 +35,7 @@ function createRoom(hostSocket, name) {
     phase: "lobby",
     day: 0,
     roles: { ...DEFAULT_ROLES },
-    players: [{ id: playerId, socketId: hostSocket.id, token, name, alive: true, role: null, loverId: null, health: 1, connected: true }],
+    players: [{ id: playerId, socketId: hostSocket.id, token, name, avatarId: firstAvailableAvatar([]), alive: true, role: null, loverId: null, health: 1, connected: true }],
     actions: {},
     votes: {},
     verdicts: {},
@@ -46,6 +47,7 @@ function createRoom(hostSocket, name) {
     nightSteps: [],
     nightStepIndex: -1,
     nightStep: null,
+    spiritNextKillNight: 3,
     seerResult: null,
     cupidPair: [],
     winner: null,
@@ -82,6 +84,7 @@ function resetRoomToLobby(room) {
   room.nightSteps = [];
   room.nightStepIndex = -1;
   room.nightStep = null;
+  room.spiritNextKillNight = 3;
   room.seerResult = null;
   room.cupidPair = [];
   room.winner = null;

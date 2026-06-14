@@ -47,6 +47,7 @@ function hasRoleForStep(room, step) {
 }
 
 function buildNightSteps(room) {
+  const spiritCanKill = room.day >= (room.spiritNextKillNight || 3);
   const steps =
     room.day === 1
       ? ["cupid", "priest", "wolves", "spirit", "seer", "guard", "witch"]
@@ -54,7 +55,7 @@ function buildNightSteps(room) {
           "guard",
           "priest",
           "wolves",
-          ...(room.day % 3 === 0 ? ["spirit"] : []),
+          ...(spiritCanKill ? ["spirit"] : []),
           "seer",
           "witch",
         ];
@@ -239,6 +240,7 @@ function resolveNight(io, room) {
     spiritAction?.mode === "betrayal-only"
       ? spiritAction.targets[0]
       : spiritAction?.targets[1];
+  if (spiritVictim) room.spiritNextKillNight = room.day + 3;
   if (spiritVictim && !deaths.includes(spiritVictim)) deaths.push(spiritVictim);
   if (witchAction?.mode === "poison" && witchAction.targets[0]) {
     if (!deaths.includes(witchAction.targets[0]))

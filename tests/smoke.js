@@ -3,6 +3,7 @@ const { io } = require("socket.io-client");
 const assert = require("assert");
 const { killWithChains, buildNightSteps, chooseWolfVictim, actorsForStep } = require("../game/engine");
 const { actionFor, canShareVoice } = require("../game/state");
+const { ensureUniqueAvatars } = require("../game/avatars");
 const { schedulePhase } = require("../game/room");
 
 const port = 3200 + Math.floor(Math.random() * 700);
@@ -67,6 +68,10 @@ async function createGroup(prefix, roles) {
 }
 
 function testHunterDeathRules() {
+  const legacyPlayers = [{ id: "a" }, { id: "b" }, { id: "c", avatarId: 0 }];
+  ensureUniqueAvatars(legacyPlayers);
+  assert.equal(new Set(legacyPlayers.map((player) => player.avatarId)).size, 3);
+
   const makeRoom = (phase, players) => ({
     phase,
     players,
@@ -158,12 +163,24 @@ function testHunterDeathRules() {
     player("witch", "witch")
   ]);
   orderedNight.day = 1;
+  orderedNight.status = "playing";
+  orderedNight.actions = {};
   orderedNight.villagePowersDisabled = false;
   assert.deepEqual(buildNightSteps(orderedNight), ["cupid", "wolves", "spirit", "seer", "guard", "witch"]);
   orderedNight.day = 2;
   assert.deepEqual(buildNightSteps(orderedNight), ["guard", "wolves", "seer", "witch"]);
   orderedNight.day = 3;
   assert.deepEqual(buildNightSteps(orderedNight), ["guard", "wolves", "spirit", "seer", "witch"]);
+  orderedNight.day = 4;
+  orderedNight.spiritNextKillNight = 3;
+  assert(buildNightSteps(orderedNight).includes("spirit"));
+  orderedNight.spiritNextKillNight = 7;
+  assert(!buildNightSteps(orderedNight).includes("spirit"));
+  orderedNight.day = 7;
+  assert(buildNightSteps(orderedNight).includes("spirit"));
+  orderedNight.nightStep = "spirit";
+  const spiritAction = actionFor(orderedNight, orderedNight.players.find((entry) => entry.role === "spirit"));
+  assert.equal(spiritAction.allowSkip, true);
   orderedNight.players.find((entry) => entry.role === "seer").alive = false;
   assert(buildNightSteps(orderedNight).includes("seer"));
   assert.equal(actorsForStep(orderedNight, "seer").length, 0);
@@ -216,6 +233,16 @@ async function run() {
   assert((await emit(managed[1], "join-room", { name: "Kick Me", code: managedRoom.code })).ok);
   assert((await emit(managed[2], "join-room", { name: "Stay", code: managedRoom.code })).ok);
   const managedState = await nextState(managed[0], (state) => state.players.length === 3);
+  assert.equal(new Set(managedState.players.map((player) => player.avatarId)).size, 3);
+  const hostAvatar = managedState.me.avatarId;
+  assert((await emit(managed[1], "set-avatar", { avatarId: hostAvatar })).error);
+  const avatarChanged = nextState(managed[0], (state) => state.players.find((player) => player.name === "Kick Me")?.avatarId === 29);
+  const avatarChangedSelf = nextState(managed[1], (state) => state.me.avatarId === 29);
+  assert((await emit(managed[1], "set-avatar", { avatarId: 29 })).ok);
+  await avatarChanged;
+  const changedSelfState = await avatarChangedSelf;
+  assert.equal(changedSelfState.players.find((player) => player.name === "Kick Me").avatarId, 29);
+  assert((await emit(managed[2], "set-avatar", { avatarId: 29 })).error);
   const kickTarget = managedState.players.find((player) => player.name === "Kick Me");
   assert((await emit(managed[2], "kick-player", { playerId: kickTarget.id })).error);
   const kicked = once(managed[1], "room-closed");
@@ -244,6 +271,8 @@ async function run() {
 
   const clients = await createGroup("Basic", { demon: 1, seer: 0, witch: 0, guard: 0, villager: 3, hunter: 0, cupid: 0, junior: 0 });
   const nightStates = await Promise.all(clients.map((client) => nextState(client, (state) => state.phase === "night")));
+  assert.equal(new Set(nightStates[0].players.map((player) => player.avatarId)).size, clients.length);
+  assert((await emit(clients[0], "set-avatar", { avatarId: 28 })).error);
   const demonIndex = nightStates.findIndex((state) => state.me.role === "demon");
   assert(demonIndex >= 0);
   const target = nightStates[demonIndex].players.find((p) => p.id !== nightStates[demonIndex].me.id);

@@ -171,6 +171,27 @@
             <p id="role-desc">Chờ chủ phòng bắt đầu trò chơi.</p>
             <em id="role-flavor"></em>
             <div id="private-info" class="private-info"></div>
+            <div id="avatar-customizer" class="avatar-customizer hidden">
+              <button
+                id="avatar-customizer-toggle"
+                class="avatar-customizer-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="avatar-picker"
+              >
+                <span id="avatar-current"></span>
+                <span>
+                  <strong>Linh vật của bạn</strong>
+                  <small>Nhấn để đổi linh vật kinh dị</small>
+                </span>
+                <b id="avatar-toggle-label">Đổi</b>
+              </button>
+              <div id="avatar-picker" class="avatar-picker hidden">
+                <small>Linh vật đã có người dùng sẽ bị khóa.</small>
+                <div id="avatar-options" class="avatar-options"></div>
+                <p id="avatar-error" class="error"></p>
+              </div>
+            </div>
           </section>
           <section class="panel action-panel">
             <div class="eyebrow">Hành động</div>

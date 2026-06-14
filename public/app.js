@@ -12,6 +12,7 @@ let roleBookOpen = false;
 let previousRole = null;
 let toastTimer = null;
 let roleCardRevealed = false;
+let avatarPickerOpen = false;
 
 const ROLE_CARD_IMAGES = {
   demon: "quyliem",
@@ -38,6 +39,10 @@ const RTC_CONFIG = {
 };
 $("background-music").volume = 0.3;
 $("death-scream").volume = 0.78;
+
+// Keep the fixed role book outside animated game containers. A transformed
+// ancestor would otherwise make the modal use that container as its viewport.
+document.body.appendChild($("role-book"));
 
 const phaseNames = {
   lobby: "Sảnh chờ",
@@ -363,6 +368,7 @@ socket.on("state", (next) => {
     roleParticles.stop();
   }
   if (next.status === "lobby") {
+    document.body.classList.remove("death-shake", "urgent-10");
     roleCardRevealed = false;
     $("mini-card").classList.add("hidden");
     bookFilter = "all";
@@ -413,6 +419,7 @@ function render() {
     ? `${state.phase === "night" ? "Đêm" : "Ngày"} ${state.day}`
     : "";
   renderIdentity();
+  renderAvatarCustomizer();
   renderPlayers();
   renderAction();
   renderLogs();
@@ -845,6 +852,7 @@ function renderIdentity() {
   const roleName = $("role-name");
   const roleDesc = $("role-desc");
   const roleFlavor = $("role-flavor");
+  roleName.classList.toggle("waiting-title", !role);
   if (role) {
     if (role !== previousRole && previousRole !== undefined) {
       roleName.className = "role-reveal";
@@ -960,15 +968,61 @@ function renderVotesFor(targetId) {
 }
 
 function renderSigil(player, mini = false) {
-  const index = Math.max(
-    0,
-    state.players.findIndex((candidate) => candidate.id === player.id),
-  );
-  const rotation = ((index * 47) % 90) - 45;
-  const pattern = index % 5;
-  const palette = index % 6;
-  return `<span class="player-avatar sigil-${pattern} palette-${palette} ${mini ? "mini" : ""}" style="--r:${rotation}deg" title="${escapeHtml(player.name)}"><i></i></span>`;
+  return renderAvatar(player.avatarId, mini, player.name);
 }
+
+function renderAvatar(avatarId, mini = false, title = "") {
+  const id = Number.isInteger(avatarId) ? avatarId : 0;
+  const column = id % 6;
+  const row = Math.floor(id / 6);
+  const positionX = column * 20;
+  const positionY = row * 25;
+  return `<span class="player-avatar mascot ${mini ? "mini" : ""}" style="background-position:${positionX}% ${positionY}%" title="${escapeHtml(title || `Linh vật ${id + 1}`)}"></span>`;
+}
+
+function renderAvatarCustomizer() {
+  const customizer = $("avatar-customizer");
+  const canCustomize = state.status === "lobby" && Boolean(state.me);
+  customizer.classList.toggle("hidden", !canCustomize);
+  if (!canCustomize) {
+    avatarPickerOpen = false;
+    return;
+  }
+  $("avatar-current").innerHTML = renderAvatar(state.me.avatarId);
+  $("avatar-picker").classList.toggle("hidden", !avatarPickerOpen);
+  $("avatar-customizer-toggle").setAttribute("aria-expanded", String(avatarPickerOpen));
+  $("avatar-toggle-label").textContent = avatarPickerOpen ? "Đóng" : "Đổi";
+
+  const usedByOthers = new Set(
+    state.players
+      .filter((player) => player.id !== state.me.id)
+      .map((player) => player.avatarId),
+  );
+  $("avatar-options").innerHTML = Array.from(
+    { length: state.avatarCount || 30 },
+    (_, avatarId) => {
+      const selectedAvatar = avatarId === state.me.avatarId;
+      const unavailable = usedByOthers.has(avatarId);
+      return `<button class="avatar-option ${selectedAvatar ? "selected" : ""} ${unavailable ? "unavailable" : ""}" data-avatar="${avatarId}" ${unavailable ? "disabled" : ""} aria-label="Linh vật ${avatarId + 1}" title="${unavailable ? "Đã có người chọn" : selectedAvatar ? "Linh vật hiện tại" : "Chọn linh vật này"}">${renderAvatar(avatarId)}<b>${avatarId + 1}</b></button>`;
+    },
+  ).join("");
+  document.querySelectorAll("[data-avatar]").forEach((button) => {
+    button.onclick = () => {
+      socket.emit("set-avatar", { avatarId: Number(button.dataset.avatar) }, (res) => {
+        showError("avatar-error", res?.error || "");
+        if (!res?.error) {
+          avatarPickerOpen = false;
+          renderAvatarCustomizer();
+        }
+      });
+    };
+  });
+}
+
+$("avatar-customizer-toggle").onclick = () => {
+  avatarPickerOpen = !avatarPickerOpen;
+  renderAvatarCustomizer();
+};
 
 function renderAction() {
   const action = state.action;

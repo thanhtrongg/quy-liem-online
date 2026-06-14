@@ -13,7 +13,7 @@ const ROLE_INFO = {
     team: "loner",
     icon: "☩",
     description:
-      "Cùng đàn Quỷ săn mồi mỗi đêm. Vào đêm 3, 6, 9..., được bí mật giết thêm một thành viên phe Quỷ. Chỉ thắng khi là người duy nhất còn sống.",
+      "Sau hai đêm, được bí mật giết một Quỷ thường. Có thể giữ quyền giết sang đêm sau; sau khi ra tay phải chờ thêm hai đêm. Chỉ thắng khi là người duy nhất còn sống.",
     flavor:
       "Ngươi thức cùng đàn, săn cùng đàn, nhưng chưa từng thuộc về đàn. Chiếc ngai cuối cùng chỉ đủ chỗ cho một kẻ.",
   },

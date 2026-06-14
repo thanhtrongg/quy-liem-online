@@ -1396,6 +1396,13 @@ body[data-phase="defense"] .action-panel {
   color: #ff2842;
   text-shadow: 2px 3px #230006;
 }
+.identity h2.waiting-title {
+  font-size: clamp(1.35rem, 3.2vw, 2.45rem);
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  word-spacing: 0.08em;
+  white-space: nowrap;
+}
 .private-info p {
   margin: 8px 0 0;
   padding: 9px 11px;
@@ -1436,7 +1443,7 @@ body[data-phase="defense"] .action-panel {
 .player {
   position: relative;
   display: grid;
-  grid-template-columns: 40px 1fr auto;
+  grid-template-columns: 46px 1fr auto;
   align-items: center;
   gap: 11px;
   min-height: 66px;
@@ -1896,7 +1903,127 @@ body[data-phase="night"] .game-header::after {
   background: linear-gradient(90deg, transparent, #6d5bcd, transparent);
 }
 .death-shake main {
-  animation: screen-shake 0.65s both;
+  animation: screen-shake 0.65s;
+}
+.avatar-customizer {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #5f252d;
+}
+.avatar-customizer-toggle {
+  display: grid;
+  width: 100%;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  text-align: left;
+  border-color: #5f252d;
+  background: #10090b;
+}
+.avatar-customizer-toggle span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+.avatar-customizer-toggle strong {
+  color: #f0d7da;
+}
+.avatar-customizer-toggle small,
+.avatar-picker > small {
+  color: #a98287;
+}
+.avatar-customizer-toggle b {
+  color: var(--gold);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.avatar-picker {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #452027;
+  background: #080506b8;
+}
+.avatar-picker > small {
+  display: block;
+  margin-bottom: 10px;
+}
+.avatar-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 8px;
+}
+.avatar-option {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 78px;
+  padding: 0;
+  overflow: hidden;
+  border-color: #49252b;
+  background: #0c0809;
+}
+.avatar-option:hover:not(:disabled) {
+  border-color: #b42b3b;
+  background: #211013;
+}
+.avatar-option.selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 16px #e4b45b55, inset 0 0 14px #e4b45b18;
+}
+.avatar-option.unavailable {
+  opacity: 0.22;
+  filter: grayscale(1);
+}
+.avatar-option .player-avatar {
+  animation: none;
+  pointer-events: none;
+}
+.avatar-option b {
+  position: absolute;
+  right: 0;
+  bottom: 4px;
+  left: 0;
+  text-align: center;
+  color: #b99599;
+  font-size: 0.56rem;
+  font-weight: 600;
+}
+.avatar-option.selected b {
+  color: var(--gold);
+}
+.player-avatar.mascot {
+  width: 46px;
+  height: 46px;
+  border: 1px solid #8d303a;
+  border-radius: 9px;
+  background-color: #050304;
+  background-image: url("/images/horror-mascots.png");
+  background-repeat: no-repeat;
+  background-size: 600% 500%;
+  background-position: 0 0;
+  box-shadow: 0 0 12px #c3142b55, inset 0 0 7px #000;
+  transform: none;
+}
+.player-avatar.mascot::before,
+.player-avatar.mascot::after {
+  display: none;
+}
+.player-avatar.mascot.mini {
+  width: 28px;
+  height: 28px;
+  margin-left: -5px;
+  border-radius: 6px;
+}
+.avatar-option .player-avatar.mascot {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 52px;
+  height: 52px;
+  margin: 0;
+  transform: translateX(-50%);
 }
 .death-shake {
   overflow: hidden;

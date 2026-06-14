@@ -1,5 +1,6 @@
 const { ROLE_INFO, isWolf } = require("./roles");
 const { getPlayer, alive } = require("./utils");
+const { AVATAR_COUNT, ensureUniqueAvatars } = require("./avatars");
 
 function voiceChannel(room, player) {
   if (!room || !player || room.status !== "playing" || !player.alive || !player.connected) return null;
@@ -38,8 +39,8 @@ function actionFor(room, me) {
   if (acted) return null;
   if (room.villagePowersDisabled && ROLE_INFO[me.role]?.team === "village") return null;
   if (step === "cupid" && me.role === "cupid") return { type: "cupid", label: "Ghép đôi hai người", count: 2 };
-  if (step === "spirit" && me.role === "spirit") return room.day % 3 === 0
-    ? { type: "spirit", label: "Chọn một Quỷ thường để thủ tiêu", count: 1, betrayalOnly: true }
+  if (step === "spirit" && me.role === "spirit") return room.day >= (room.spiritNextKillNight || 3)
+    ? { type: "spirit", label: "Chọn một Quỷ thường để thủ tiêu", count: 1, betrayalOnly: true, allowSkip: true }
     : { type: "acknowledge", label: "Ghi nhớ đàn Quỷ", count: 0, allowSkip: true };
   if (step === "guard" && me.role === "guard") {
     return { type: "guard", label: "Chọn người bảo kê", count: 1, exclude: room.guardLastTarget ? [room.guardLastTarget] : [] };
@@ -104,9 +105,11 @@ function publicState(room, socketId) {
     hunterRevealName: getPlayer(room, room.hunterRevealId)?.name || null,
     roles: room.roles,
     roleInfo: ROLE_INFO,
+    avatarCount: AVATAR_COUNT,
     players: room.players.map((p) => ({
       id: p.id,
       name: p.name,
+      avatarId: p.avatarId,
       alive: p.alive,
       connected: p.connected,
       role: canSeeRoles || p.id === socketId || room.hunterRevealId === p.id ? p.role : null,
@@ -115,6 +118,7 @@ function publicState(room, socketId) {
     me: me ? {
       id: me.id,
       name: me.name,
+      avatarId: me.avatarId,
       alive: me.alive,
       role: me.role,
       health: me.health,
@@ -144,6 +148,7 @@ function publicState(room, socketId) {
 }
 
 function emitRoom(io, room) {
+  ensureUniqueAvatars(room.players);
   for (const player of room.players) {
     if (player.socketId) io.to(player.socketId).emit("state", publicState(room, player.id));
   }
