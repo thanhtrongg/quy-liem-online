@@ -13,7 +13,7 @@ const ROLE_INFO = {
     team: "loner",
     icon: "☩",
     description:
-      "Sau hai đêm, được bí mật giết một Quỷ thường. Có thể giữ quyền giết sang đêm sau; sau khi ra tay phải chờ thêm hai đêm. Chỉ thắng khi là người duy nhất còn sống.",
+      "Sau hai đêm, được bí mật giết một Quỷ thường. Có thể giữ quyền giết sang đêm sau, sau khi ra tay phải chờ thêm hai đêm. Chỉ thắng khi là người duy nhất còn sống.",
     flavor:
       "Ngươi thức cùng đàn, săn cùng đàn, nhưng chưa từng thuộc về đàn. Chiếc ngai cuối cùng chỉ đủ chỗ cho một kẻ.",
   },
@@ -39,7 +39,7 @@ const ROLE_INFO = {
     team: "village",
     icon: "⛨",
     description:
-      "Bảo kê một người khỏi Quỷ Liếm, kể cả bản thân. Sau mỗi lần bảo vệ phải nghỉ một đêm.",
+      "Mỗi đêm bảo kê một người khỏi Quỷ Liếm, kể cả bản thân. Không được bảo kê cùng một người trong hai đêm liên tiếp.",
     flavor:
       "Thân hình to lớn che chắn cho khu phố. Không một con quỷ nào qua được vòng tay gã.",
   },
@@ -56,7 +56,7 @@ const ROLE_INFO = {
     team: "village",
     icon: "☥",
     description:
-      "Có hai mạng. Mạng đầu không thể được cứu hay bảo vệ, mạng cuối có thể được cứu hoặc bảo vệ. Khi chết hẳn, tất cả phe dân mất kỹ năng.",
+      "Có hai mạng. Mạng đầu không thể được Cậu Bé Chơi Bùa cứu nhưng vẫn được Gã Béo Nóng Tính bảo kê; mạng cuối có thể được cả cứu lẫn bảo kê. Khi chết hẳn, tất cả phe dân mất kỹ năng.",
     flavor:
       "Lớp vỏ giòn che giấu một lời nguyền. Khi lớp vỏ cuối cùng vỡ vụn, hy vọng của khu phố cũng tắt theo.",
   },
@@ -82,7 +82,8 @@ const ROLE_INFO = {
     name: "Quỷ Liếm Nhí",
     team: "demon",
     icon: "⧩",
-    description: "Chỉ được săn mồi khi tất cả Quỷ Liếm trưởng thành đã chết.",
+    description:
+      "Khi Quỷ Liếm Nhí chết, đàn Quỷ được liếm hai người trong đêm kế tiếp rồi trở lại săn một người mỗi đêm.",
     flavor:
       "Kẻ học việc của Quỷ Liếm. Nhỏ nhưng nguy hiểm. Chờ đến lượt mình ra tay.",
   },

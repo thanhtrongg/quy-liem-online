@@ -204,6 +204,33 @@ function testHunterDeathRules() {
   chooseWolfVictim(majorityRoom);
   assert.equal(majorityRoom.nightVictim, null);
 
+  const revengeRoom = makeRoom("night", [
+    player("wolf-a", "demon"),
+    player("wolf-b", "demon"),
+    player("junior", "junior"),
+    player("victim-a", "villager"),
+    player("victim-b", "villager"),
+    player("victim-c", "villager")
+  ]);
+  revengeRoom.status = "playing";
+  revengeRoom.day = 2;
+  revengeRoom.juniorRevengeNight = null;
+  killWithChains(revengeRoom, ["junior"], "bị khu phố treo cổ");
+  assert.equal(revengeRoom.juniorRevengeNight, 3);
+  revengeRoom.day = 3;
+  revengeRoom.nightStep = "wolves";
+  revengeRoom.actions = {
+    "wolf-a": { targets: ["victim-a", "victim-b"], mode: null },
+    "wolf-b": { targets: ["victim-a", "victim-b"], mode: null }
+  };
+  assert.equal(actionFor(revengeRoom, revengeRoom.players[0]).count, 2);
+  chooseWolfVictim(revengeRoom);
+  assert.deepEqual(revengeRoom.nightVictims, ["victim-a", "victim-b"]);
+  assert.equal(revengeRoom.juniorRevengeNight, null);
+  revengeRoom.day = 4;
+  revengeRoom.actions = {};
+  assert.equal(actionFor(revengeRoom, revengeRoom.players[0]).count, 1);
+
   const voiceRoom = {
     status: "playing",
     phase: "night",

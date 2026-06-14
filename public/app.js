@@ -1078,7 +1078,9 @@ function renderAction() {
     : action.betrayal
       ? "Đầu tiên chọn con mồi của đàn, sau đó chọn một thành viên phe Quỷ để bí mật thủ tiêu."
       : action.type === "wolf-vote"
-        ? "Mỗi Quỷ bỏ một phiếu. Mục tiêu có nhiều phiếu nhất sẽ bị liếm; hòa phiếu thì không ai chết."
+        ? action.revengeNight
+          ? "Quỷ Liếm Nhí đã chết. Mỗi Quỷ chọn hai mục tiêu; hai người có nhiều phiếu nhất sẽ bị liếm."
+          : "Mỗi Quỷ bỏ một phiếu. Mục tiêu có nhiều phiếu nhất sẽ bị liếm; hòa phiếu thì không ai chết."
         : action.count === 2
           ? "Chọn đúng hai người."
           : "Chạm vào một người để chọn.";
@@ -1120,7 +1122,9 @@ function eligible(action, player) {
 }
 
 function renderTargets(action) {
-  if (!selected.length && action.currentTarget)
+  if (!selected.length && action.currentTargets?.length)
+    selected = [...action.currentTargets];
+  else if (!selected.length && action.currentTarget)
     selected = [action.currentTarget];
   const choices = state.players.filter((p) => eligible(action, p));
   $("targets").innerHTML = choices

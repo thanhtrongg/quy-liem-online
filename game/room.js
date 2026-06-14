@@ -43,7 +43,9 @@ function createRoom(hostSocket, name) {
     witch: { save: true, poison: true },
     guardLastTarget: null,
     nightVictim: null,
+    nightVictims: [],
     nightVictimReady: false,
+    juniorRevengeNight: null,
     nightSteps: [],
     nightStepIndex: -1,
     nightStep: null,
@@ -80,7 +82,9 @@ function resetRoomToLobby(room) {
   room.witch = { save: true, poison: true };
   room.guardLastTarget = null;
   room.nightVictim = null;
+  room.nightVictims = [];
   room.nightVictimReady = false;
+  room.juniorRevengeNight = null;
   room.nightSteps = [];
   room.nightStepIndex = -1;
   room.nightStep = null;

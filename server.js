@@ -180,6 +180,8 @@ io.on("connection", (socket) => {
     room.villagePowersDisabled = false;
     room.guardLastTarget = null;
     room.spiritNextKillNight = 3;
+    room.juniorRevengeNight = null;
+    room.nightVictims = [];
     room.cupidPair = [];
     room.priestChurch = [];
     room.hunterRevealId = null;
@@ -237,12 +239,12 @@ io.on("connection", (socket) => {
       else room.actions[player.id] = { targets: [], mode: "skip" };
     } else if (action.type === "witch") {
       if (!["save", "poison"].includes(mode)) return callback?.({ error: "Lựa chọn không hợp lệ." });
-      const nightVictim = getPlayer(room, room.nightVictim);
+      const nightVictim = getPlayer(room, action.victimId);
       const firstSpringrollLife = nightVictim?.role === "springroll" && (nightVictim.health ?? 2) > 1;
-      if (mode === "save" && (!room.witch.save || !room.nightVictim || firstSpringrollLife)) return callback?.({ error: "Không thể dùng bùa cứu lúc này." });
+      if (mode === "save" && (!room.witch.save || !action.victimId || firstSpringrollLife)) return callback?.({ error: "Không thể dùng bùa cứu lúc này." });
       if (mode === "poison" && targets[0] === player.id) return callback?.({ error: "Bạn không thể dùng bùa hại lên chính mình." });
       if (mode === "poison" && (!room.witch.poison || !validateTargets(room, player, action, targets))) return callback?.({ error: "Không thể dùng bùa hại lúc này." });
-      room.actions[player.id] = { targets: mode === "save" ? [room.nightVictim] : targets, mode };
+      room.actions[player.id] = { targets: mode === "save" ? [action.victimId] : targets, mode };
     } else if (!validateTargets(room, player, action, targets)) {
       return callback?.({ error: "Mục tiêu không hợp lệ." });
     } else if (action.type === "vote") {

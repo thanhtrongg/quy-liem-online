@@ -26,13 +26,16 @@ function actionFor(room, me) {
   const acted = Boolean(room.actions[me.id]);
   if (step === "wolves" && ["demon", "junior"].includes(me.role)) {
     const currentAction = room.actions[me.id];
+    const revengeNight = room.juniorRevengeNight === room.day;
     return {
       type: "wolf-vote",
-      label: "Đàn Quỷ chọn con mồi",
-      count: 1,
+      label: revengeNight ? "Đàn Quỷ báo thù cho Quỷ Liếm Nhí" : "Đàn Quỷ chọn con mồi",
+      count: revengeNight ? 2 : 1,
       excludeRegularWolf: true,
       allowSkip: true,
       currentTarget: currentAction?.mode === "skip" ? null : currentAction?.targets?.[0] || null,
+      currentTargets: currentAction?.mode === "skip" ? [] : currentAction?.targets || [],
+      revengeNight,
       currentSkip: currentAction?.mode === "skip"
     };
   }
@@ -47,9 +50,13 @@ function actionFor(room, me) {
   }
   if (step === "seer" && me.role === "seer") return { type: "seer", label: "Chọn người để soi", count: 1 };
   if (step === "witch" && me.role === "witch") {
-    const victim = getPlayer(room, room.nightVictim);
+    const guard = alive(room).find((player) => player.role === "guard");
+    const guardTarget = guard ? room.actions[guard.id]?.targets?.[0] : null;
+    const victimId = (room.nightVictims?.length ? room.nightVictims : [room.nightVictim])
+      .find((id) => id && id !== guardTarget);
+    const victim = getPlayer(room, victimId);
     const canSaveVictim = victim && !(victim.role === "springroll" && (victim.health ?? 2) > 1);
-    return { type: "witch", label: "Dùng bùa hoặc bỏ qua", count: 1, allowSkip: true, victimId: canSaveVictim ? room.nightVictim : null };
+    return { type: "witch", label: "Dùng bùa hoặc bỏ qua", count: 1, allowSkip: true, victimId: canSaveVictim ? victimId : null };
   }
   if (step === "priest" && me.role === "priest") {
     const alreadyInChurch = new Set(room.priestChurch || []);
@@ -78,12 +85,13 @@ function publicState(room, socketId) {
   const publicBallots = room.phase === "day"
     ? room.votes
     : room.phase === "night" && room.nightStep === "wolves" && ["demon", "junior"].includes(me?.role)
-      ? Object.fromEntries(room.players.filter((p) => ["demon", "junior"].includes(p.role) && room.actions[p.id]).map((p) => [p.id, room.actions[p.id].mode === "skip" ? null : room.actions[p.id].targets[0]]))
+      ? Object.fromEntries(room.players.filter((p) => ["demon", "junior"].includes(p.role) && room.actions[p.id]).map((p) => [p.id, room.actions[p.id].mode === "skip" ? null : room.actions[p.id].targets]))
       : {};
   const votesByTarget = {};
   const blankVoters = [];
   Object.entries(publicBallots).forEach(([voterId, targetId]) => {
-    if (targetId) (votesByTarget[targetId] ||= []).push(voterId);
+    if (Array.isArray(targetId)) targetId.forEach((id) => (votesByTarget[id] ||= []).push(voterId));
+    else if (targetId) (votesByTarget[targetId] ||= []).push(voterId);
     else if (["day", "night"].includes(room.phase)) blankVoters.push(voterId);
   });
   const currentVoiceChannel = voiceChannel(room, me);
