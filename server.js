@@ -33,6 +33,11 @@ app.get("/health", (_req, res) => {
 app.get("/", (_req, res) => res.sendFile(path.join(publicDir, "index.html")));
 app.use(express.static(publicDir, {
   setHeaders(res, filePath) {
+    if (/\.(?:png|jpg|jpeg|webp|gif|svg|mp3|wav|ogg|woff2?|ttf|otf)$/i.test(filePath)) {
+      res.setHeader("Cache-Control", "public, max-age=604800");
+    } else if (/\.(?:css|js)$/i.test(filePath)) {
+      res.setHeader("Cache-Control", "public, max-age=3600, must-revalidate");
+    }
     if (filePath.endsWith(".cur")) {
       res.setHeader("Content-Type", "image/x-icon");
     }

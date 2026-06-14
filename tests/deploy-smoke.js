@@ -14,7 +14,7 @@ function request(pathname) {
     const request = http.get({ host: "127.0.0.1", port, path: pathname, timeout: 3000 }, (response) => {
       let body = "";
       response.on("data", (chunk) => { body += chunk; });
-      response.on("end", () => resolve({ status: response.statusCode, body }));
+      response.on("end", () => resolve({ status: response.statusCode, body, headers: response.headers }));
     });
     request.on("timeout", () => request.destroy(new Error(`Timeout requesting ${pathname}`)));
     request.on("error", reject);
@@ -31,10 +31,12 @@ ready
   .then(async () => {
     const health = await request("/health");
     const root = await request("/");
+    const background = await request("/images/horror-alley-bg.png");
     assert.equal(health.status, 200);
     assert.equal(JSON.parse(health.body).ok, true);
     assert.equal(root.status, 200);
     assert(root.body.includes("<!doctype html>"));
+    assert.match(background.headers["cache-control"], /max-age=604800/);
     console.log("Deploy smoke test passed: /health and / respond on 0.0.0.0.");
   })
   .catch((error) => {

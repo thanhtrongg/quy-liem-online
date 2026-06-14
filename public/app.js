@@ -345,6 +345,7 @@ function toggleRoleBook(force) {
   $("role-book").classList.toggle("open", roleBookOpen);
   $("role-book").setAttribute("aria-hidden", String(!roleBookOpen));
   $("role-book-toggle").setAttribute("aria-expanded", String(roleBookOpen));
+  if (roleBookOpen) renderRoleBook();
 }
 
 socket.on("state", (next) => {
@@ -425,7 +426,7 @@ function render() {
   renderLogs();
   renderHost();
   renderEndPanel();
-  renderRoleBook();
+  if (roleBookOpen) renderRoleBook();
   const banner = $("banner");
   if (state.status === "ended") {
     banner.classList.add("hidden");
@@ -454,7 +455,9 @@ function renderRoleBook() {
     ? filtered.map((role) => {
         const tagClass = `tag-${role.team}`;
         const filename = ROLE_CARD_IMAGES[role.key];
-        const cardImg = filename ? `<img src="/images/${filename}.png" alt="" class="book-entry-thumb">` : "";
+        const cardImg = filename
+          ? `<img src="/images/${filename}.png" alt="" class="book-entry-thumb" loading="lazy" decoding="async">`
+          : "";
         return `<article class="book-entry" data-team="${role.team}">
           <span class="book-entry-icon">${role.icon || "•"}</span>
           <div class="book-entry-body">
