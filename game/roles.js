@@ -56,7 +56,7 @@ const ROLE_INFO = {
     team: "village",
     icon: "☥",
     description:
-      "Có hai mạng. Mạng đầu không thể được Cậu Bé Chơi Bùa cứu nhưng vẫn được Gã Béo Nóng Tính bảo kê; mạng cuối có thể được cả cứu lẫn bảo kê. Khi chết hẳn, tất cả phe dân mất kỹ năng.",
+      "Có hai mạng. Mạng đầu không thể được Cậu Bé Chơi Bùa cứu nhưng vẫn được Gã Béo Nóng Tính bảo kê, mạng cuối có thể được cả cứu lẫn bảo kê. Khi chết hẳn, tất cả phe dân mất kỹ năng.",
     flavor:
       "Lớp vỏ giòn che giấu một lời nguyền. Khi lớp vỏ cuối cùng vỡ vụn, hy vọng của khu phố cũng tắt theo.",
   },
