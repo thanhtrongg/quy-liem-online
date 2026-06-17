@@ -1,5 +1,5 @@
 const { ROLE_INFO, isWolf } = require("./roles");
-const { getPlayer, alive, addLog } = require("./utils");
+const { getPlayer, alive, addLog, shuffle } = require("./utils");
 const { emitRoom, actionFor } = require("./state");
 const { schedulePhase, clearPhaseTimer } = require("./room");
 const {
@@ -92,10 +92,13 @@ function chooseWolfVictim(room) {
   const remaining = victimLimit - aboveCutoff.length;
   const chosen = [
     ...aboveCutoff.map(([target]) => target),
-    ...(tiedAtCutoff.length <= remaining ? tiedAtCutoff.map(([target]) => target) : []),
+    ...shuffle(tiedAtCutoff).slice(0, remaining).map(([target]) => target),
   ].slice(0, victimLimit);
-  const skipVotes = counts.__skip__ || 0;
-  room.nightVictims = chosen.filter((target) => (counts[target] || 0) > skipVotes);
+  const allSkip = wolves.length > 0 && wolves.every((w) => {
+    const a = room.actions[w.id];
+    return a?.mode === "skip" || !a?.targets?.length;
+  });
+  room.nightVictims = allSkip ? [] : chosen;
   room.nightVictim = room.nightVictims[0] || null;
   if (victimLimit === 2) room.juniorRevengeNight = null;
   room.nightVictimReady = true;
